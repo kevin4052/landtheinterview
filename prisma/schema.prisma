@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model TailoredResume {
+  id         String   @id @default(cuid())
+  resumeText String
+  jobText    String
+  outputText String
+  createdAt  DateTime @default(now())
+}

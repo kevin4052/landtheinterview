@@ -1,0 +1,3 @@
+# Stream Tailored Resume inline on the upload page — no results route in Phase 1
+
+The spec described a `/results/[id]` route that the user navigates to after tailoring. In Phase 1 we stream the Tailored Resume directly into the upload page instead. Without auth or a dashboard there is no reason to deep-link to a specific result, and keeping a navigable route requires either blocking until the full stream completes (to get the saved ID) or a more complex final-event protocol. Streaming inline is simpler and avoids that coordination. The `/results/[id]` route ships in Phase 2 alongside auth and resume history.
