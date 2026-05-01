@@ -8,9 +8,12 @@ datasource db {
 }
 
 model TailoredResume {
-  id         String   @id @default(cuid())
-  resumeText String
-  jobText    String
-  outputText String
-  createdAt  DateTime @default(now())
+  id            String   @id @default(cuid())
+  resumeText    String
+  jobText       String
+  outputText    String
+  inputFilename String?
+  inputFormat   String?
+  outputFormat  String?
+  createdAt     DateTime @default(now())
 }

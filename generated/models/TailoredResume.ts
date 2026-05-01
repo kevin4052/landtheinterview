@@ -29,6 +29,9 @@ export type TailoredResumeMinAggregateOutputType = {
   resumeText: string | null
   jobText: string | null
   outputText: string | null
+  inputFilename: string | null
+  inputFormat: string | null
+  outputFormat: string | null
   createdAt: Date | null
 }
 
@@ -37,6 +40,9 @@ export type TailoredResumeMaxAggregateOutputType = {
   resumeText: string | null
   jobText: string | null
   outputText: string | null
+  inputFilename: string | null
+  inputFormat: string | null
+  outputFormat: string | null
   createdAt: Date | null
 }
 
@@ -45,6 +51,9 @@ export type TailoredResumeCountAggregateOutputType = {
   resumeText: number
   jobText: number
   outputText: number
+  inputFilename: number
+  inputFormat: number
+  outputFormat: number
   createdAt: number
   _all: number
 }
@@ -55,6 +64,9 @@ export type TailoredResumeMinAggregateInputType = {
   resumeText?: true
   jobText?: true
   outputText?: true
+  inputFilename?: true
+  inputFormat?: true
+  outputFormat?: true
   createdAt?: true
 }
 
@@ -63,6 +75,9 @@ export type TailoredResumeMaxAggregateInputType = {
   resumeText?: true
   jobText?: true
   outputText?: true
+  inputFilename?: true
+  inputFormat?: true
+  outputFormat?: true
   createdAt?: true
 }
 
@@ -71,6 +86,9 @@ export type TailoredResumeCountAggregateInputType = {
   resumeText?: true
   jobText?: true
   outputText?: true
+  inputFilename?: true
+  inputFormat?: true
+  outputFormat?: true
   createdAt?: true
   _all?: true
 }
@@ -152,6 +170,9 @@ export type TailoredResumeGroupByOutputType = {
   resumeText: string
   jobText: string
   outputText: string
+  inputFilename: string | null
+  inputFormat: string | null
+  outputFormat: string | null
   createdAt: Date
   _count: TailoredResumeCountAggregateOutputType | null
   _min: TailoredResumeMinAggregateOutputType | null
@@ -181,6 +202,9 @@ export type TailoredResumeWhereInput = {
   resumeText?: Prisma.StringFilter<"TailoredResume"> | string
   jobText?: Prisma.StringFilter<"TailoredResume"> | string
   outputText?: Prisma.StringFilter<"TailoredResume"> | string
+  inputFilename?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
+  inputFormat?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
+  outputFormat?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
   createdAt?: Prisma.DateTimeFilter<"TailoredResume"> | Date | string
 }
 
@@ -189,6 +213,9 @@ export type TailoredResumeOrderByWithRelationInput = {
   resumeText?: Prisma.SortOrder
   jobText?: Prisma.SortOrder
   outputText?: Prisma.SortOrder
+  inputFilename?: Prisma.SortOrderInput | Prisma.SortOrder
+  inputFormat?: Prisma.SortOrderInput | Prisma.SortOrder
+  outputFormat?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -200,6 +227,9 @@ export type TailoredResumeWhereUniqueInput = Prisma.AtLeast<{
   resumeText?: Prisma.StringFilter<"TailoredResume"> | string
   jobText?: Prisma.StringFilter<"TailoredResume"> | string
   outputText?: Prisma.StringFilter<"TailoredResume"> | string
+  inputFilename?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
+  inputFormat?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
+  outputFormat?: Prisma.StringNullableFilter<"TailoredResume"> | string | null
   createdAt?: Prisma.DateTimeFilter<"TailoredResume"> | Date | string
 }, "id">
 
@@ -208,6 +238,9 @@ export type TailoredResumeOrderByWithAggregationInput = {
   resumeText?: Prisma.SortOrder
   jobText?: Prisma.SortOrder
   outputText?: Prisma.SortOrder
+  inputFilename?: Prisma.SortOrderInput | Prisma.SortOrder
+  inputFormat?: Prisma.SortOrderInput | Prisma.SortOrder
+  outputFormat?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.TailoredResumeCountOrderByAggregateInput
   _max?: Prisma.TailoredResumeMaxOrderByAggregateInput
@@ -222,6 +255,9 @@ export type TailoredResumeScalarWhereWithAggregatesInput = {
   resumeText?: Prisma.StringWithAggregatesFilter<"TailoredResume"> | string
   jobText?: Prisma.StringWithAggregatesFilter<"TailoredResume"> | string
   outputText?: Prisma.StringWithAggregatesFilter<"TailoredResume"> | string
+  inputFilename?: Prisma.StringNullableWithAggregatesFilter<"TailoredResume"> | string | null
+  inputFormat?: Prisma.StringNullableWithAggregatesFilter<"TailoredResume"> | string | null
+  outputFormat?: Prisma.StringNullableWithAggregatesFilter<"TailoredResume"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TailoredResume"> | Date | string
 }
 
@@ -230,6 +266,9 @@ export type TailoredResumeCreateInput = {
   resumeText: string
   jobText: string
   outputText: string
+  inputFilename?: string | null
+  inputFormat?: string | null
+  outputFormat?: string | null
   createdAt?: Date | string
 }
 
@@ -238,6 +277,9 @@ export type TailoredResumeUncheckedCreateInput = {
   resumeText: string
   jobText: string
   outputText: string
+  inputFilename?: string | null
+  inputFormat?: string | null
+  outputFormat?: string | null
   createdAt?: Date | string
 }
 
@@ -246,6 +288,9 @@ export type TailoredResumeUpdateInput = {
   resumeText?: Prisma.StringFieldUpdateOperationsInput | string
   jobText?: Prisma.StringFieldUpdateOperationsInput | string
   outputText?: Prisma.StringFieldUpdateOperationsInput | string
+  inputFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -254,6 +299,9 @@ export type TailoredResumeUncheckedUpdateInput = {
   resumeText?: Prisma.StringFieldUpdateOperationsInput | string
   jobText?: Prisma.StringFieldUpdateOperationsInput | string
   outputText?: Prisma.StringFieldUpdateOperationsInput | string
+  inputFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -262,6 +310,9 @@ export type TailoredResumeCreateManyInput = {
   resumeText: string
   jobText: string
   outputText: string
+  inputFilename?: string | null
+  inputFormat?: string | null
+  outputFormat?: string | null
   createdAt?: Date | string
 }
 
@@ -270,6 +321,9 @@ export type TailoredResumeUpdateManyMutationInput = {
   resumeText?: Prisma.StringFieldUpdateOperationsInput | string
   jobText?: Prisma.StringFieldUpdateOperationsInput | string
   outputText?: Prisma.StringFieldUpdateOperationsInput | string
+  inputFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -278,6 +332,9 @@ export type TailoredResumeUncheckedUpdateManyInput = {
   resumeText?: Prisma.StringFieldUpdateOperationsInput | string
   jobText?: Prisma.StringFieldUpdateOperationsInput | string
   outputText?: Prisma.StringFieldUpdateOperationsInput | string
+  inputFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outputFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -286,6 +343,9 @@ export type TailoredResumeCountOrderByAggregateInput = {
   resumeText?: Prisma.SortOrder
   jobText?: Prisma.SortOrder
   outputText?: Prisma.SortOrder
+  inputFilename?: Prisma.SortOrder
+  inputFormat?: Prisma.SortOrder
+  outputFormat?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -294,6 +354,9 @@ export type TailoredResumeMaxOrderByAggregateInput = {
   resumeText?: Prisma.SortOrder
   jobText?: Prisma.SortOrder
   outputText?: Prisma.SortOrder
+  inputFilename?: Prisma.SortOrder
+  inputFormat?: Prisma.SortOrder
+  outputFormat?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -302,11 +365,18 @@ export type TailoredResumeMinOrderByAggregateInput = {
   resumeText?: Prisma.SortOrder
   jobText?: Prisma.SortOrder
   outputText?: Prisma.SortOrder
+  inputFilename?: Prisma.SortOrder
+  inputFormat?: Prisma.SortOrder
+  outputFormat?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -320,6 +390,9 @@ export type TailoredResumeSelect<ExtArgs extends runtime.Types.Extensions.Intern
   resumeText?: boolean
   jobText?: boolean
   outputText?: boolean
+  inputFilename?: boolean
+  inputFormat?: boolean
+  outputFormat?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["tailoredResume"]>
 
@@ -328,6 +401,9 @@ export type TailoredResumeSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   resumeText?: boolean
   jobText?: boolean
   outputText?: boolean
+  inputFilename?: boolean
+  inputFormat?: boolean
+  outputFormat?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["tailoredResume"]>
 
@@ -336,6 +412,9 @@ export type TailoredResumeSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   resumeText?: boolean
   jobText?: boolean
   outputText?: boolean
+  inputFilename?: boolean
+  inputFormat?: boolean
+  outputFormat?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["tailoredResume"]>
 
@@ -344,10 +423,13 @@ export type TailoredResumeSelectScalar = {
   resumeText?: boolean
   jobText?: boolean
   outputText?: boolean
+  inputFilename?: boolean
+  inputFormat?: boolean
+  outputFormat?: boolean
   createdAt?: boolean
 }
 
-export type TailoredResumeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "resumeText" | "jobText" | "outputText" | "createdAt", ExtArgs["result"]["tailoredResume"]>
+export type TailoredResumeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "resumeText" | "jobText" | "outputText" | "inputFilename" | "inputFormat" | "outputFormat" | "createdAt", ExtArgs["result"]["tailoredResume"]>
 
 export type $TailoredResumePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TailoredResume"
@@ -357,6 +439,9 @@ export type $TailoredResumePayload<ExtArgs extends runtime.Types.Extensions.Inte
     resumeText: string
     jobText: string
     outputText: string
+    inputFilename: string | null
+    inputFormat: string | null
+    outputFormat: string | null
     createdAt: Date
   }, ExtArgs["result"]["tailoredResume"]>
   composites: {}
@@ -785,6 +870,9 @@ export interface TailoredResumeFieldRefs {
   readonly resumeText: Prisma.FieldRef<"TailoredResume", 'String'>
   readonly jobText: Prisma.FieldRef<"TailoredResume", 'String'>
   readonly outputText: Prisma.FieldRef<"TailoredResume", 'String'>
+  readonly inputFilename: Prisma.FieldRef<"TailoredResume", 'String'>
+  readonly inputFormat: Prisma.FieldRef<"TailoredResume", 'String'>
+  readonly outputFormat: Prisma.FieldRef<"TailoredResume", 'String'>
   readonly createdAt: Prisma.FieldRef<"TailoredResume", 'DateTime'>
 }
     

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { resumeText, jobText } = parsed.data;
+  const { resumeText, jobText, inputFilename, inputFormat } = parsed.data;
   let fullOutput = "";
 
   try {
@@ -50,7 +50,13 @@ export async function POST(request: Request) {
       if (!fullOutput) return;
       try {
         await prisma.tailoredResume.create({
-          data: { resumeText, jobText, outputText: fullOutput },
+          data: {
+            resumeText,
+            jobText,
+            outputText: fullOutput,
+            inputFilename: inputFilename ?? null,
+            inputFormat: inputFormat ?? "paste",
+          },
         });
       } catch (err) {
         console.error("[tailor] DB write failed:", err);
