@@ -5,16 +5,23 @@ import Link from "next/link";
 export default async function HistoryPage() {
   const { userId } = await auth();
 
-  const resumes = await prisma.tailoredResume.findMany({
-    where: { clerkUserId: userId },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      inputFilename: true,
-      outputFormat: true,
-      createdAt: true,
-    },
-  });
+  let resumes: { id: string; inputFilename: string | null; outputFormat: string | null; createdAt: Date }[] = [];
+  let dbError = false;
+
+  try {
+    resumes = await prisma.tailoredResume.findMany({
+      where: { clerkUserId: userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        inputFilename: true,
+        outputFormat: true,
+        createdAt: true,
+      },
+    });
+  } catch {
+    dbError = true;
+  }
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
@@ -28,7 +35,11 @@ export default async function HistoryPage() {
         </Link>
       </div>
 
-      {resumes.length === 0 ? (
+      {dbError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Unable to load your resume history. Please try refreshing the page. If the problem persists, the database may be temporarily unavailable.
+        </div>
+      ) : resumes.length === 0 ? (
         <p className="text-neutral-500 text-sm">
           No tailored resumes yet.{" "}
           <Link href="/upload" className="underline">

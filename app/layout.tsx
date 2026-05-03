@@ -31,18 +31,23 @@ export default function RootLayout({
       >
         <body className="min-h-full flex flex-col">
           <ClerkProvider>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <Show when="signed-out">
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-purple-700 text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
+          <header className="flex justify-between items-center px-6 h-16 border-b border-neutral-100">
+            <span className="font-semibold text-sm tracking-tight">
+              Land the Interview
+            </span>
+            <div className="flex items-center gap-4">
+              <Show when="signed-out">
+                <SignInButton />
+                <SignUpButton>
+                  <button className="bg-black text-white rounded-lg font-medium text-sm px-4 py-2 cursor-pointer hover:bg-neutral-800 transition-colors">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </Show>
+              <Show when="signed-in">
+                <UserButton />
+              </Show>
+            </div>
           </header>
           {children}
         </ClerkProvider>
