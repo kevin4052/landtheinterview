@@ -9,6 +9,7 @@ datasource db {
 
 model TailoredResume {
   id            String   @id @default(cuid())
+  clerkUserId   String?
   resumeText    String
   jobText       String
   outputText    String
@@ -16,4 +17,6 @@ model TailoredResume {
   inputFormat   String?
   outputFormat  String?
   createdAt     DateTime @default(now())
+
+  @@index([clerkUserId])
 }
