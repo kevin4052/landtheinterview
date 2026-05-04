@@ -1,22 +1,34 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { ResumePreview } from "@/app/components/ResumePreview";
+import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
+import { resumeToText } from "@/lib/utils/resumeToText";
 
 type FileMetadata = {
   filename: string;
   format: "pdf" | "docx" | "txt";
 };
 
+type PdfTemplate = "classic" | "modern" | "two-column";
+
+const TEMPLATE_LABELS: Record<PdfTemplate, string> = {
+  classic: "Classic",
+  modern: "Modern",
+  "two-column": "Two-Column",
+};
+
 export default function UploadPage() {
   const [resumeText, setResumeText] = useState("");
   const [jobText, setJobText] = useState("");
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState<ResumeJSON | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fileMeta, setFileMeta] = useState<FileMetadata | null>(null);
   const [parsing, setParsing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [downloadingFormat, setDownloadingFormat] = useState<"pdf" | "docx" | null>(null);
+  const [template, setTemplate] = useState<PdfTemplate>("classic");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseFile = useCallback(async (file: File) => {
@@ -66,7 +78,7 @@ export default function UploadPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setOutput("");
+    setOutput(null);
     setError("");
 
     try {
@@ -90,14 +102,8 @@ export default function UploadPage() {
         return;
       }
 
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        setOutput((prev) => prev + decoder.decode(value, { stream: true }));
-      }
+      const resumeJson = await response.json() as ResumeJSON;
+      setOutput(resumeJson);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -106,16 +112,18 @@ export default function UploadPage() {
   }
 
   function handleCopy() {
-    navigator.clipboard.writeText(output);
+    if (!output) return;
+    navigator.clipboard.writeText(resumeToText(output));
   }
 
   async function handleDownload(format: "pdf" | "docx") {
+    if (!output) return;
     setDownloadingFormat(format);
     try {
       const res = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: output, format }),
+        body: JSON.stringify({ resume: output, format, template }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -257,18 +265,30 @@ export default function UploadPage() {
 
         {(output || loading) && (
           <div className="mt-10">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-4 flex-wrap">
               <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
                 Tailored Resume
               </h2>
               {output && !loading && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <button
                     onClick={handleCopy}
                     className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                   >
                     Copy
                   </button>
+                  <select
+                    value={template}
+                    onChange={(e) => setTemplate(e.target.value as PdfTemplate)}
+                    className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                    aria-label="PDF template"
+                  >
+                    {(Object.keys(TEMPLATE_LABELS) as PdfTemplate[]).map((t) => (
+                      <option key={t} value={t}>
+                        {TEMPLATE_LABELS[t]}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     onClick={() => handleDownload("pdf")}
                     disabled={downloadingFormat !== null}
@@ -286,14 +306,16 @@ export default function UploadPage() {
                 </div>
               )}
             </div>
-            <pre className="whitespace-pre-wrap rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-6 py-5 text-sm text-zinc-800 dark:text-zinc-200 font-mono leading-relaxed min-h-24">
-              {output}
-              {loading && !output && (
-                <span className="text-zinc-400 dark:text-zinc-600">
-                  Generating…
+
+            {loading && !output && (
+              <div className="flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-6 py-16">
+                <span className="text-sm text-zinc-400 dark:text-zinc-600">
+                  Tailoring your resume…
                 </span>
-              )}
-            </pre>
+              </div>
+            )}
+
+            {output && <ResumePreview resume={output} />}
           </div>
         )}
       </div>

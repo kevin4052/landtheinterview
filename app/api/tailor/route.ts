@@ -23,41 +23,18 @@ export async function POST(request: Request) {
   }
 
   const { resumeText, jobText, inputFilename, inputFormat } = parsed.data;
-  let fullOutput = "";
 
   try {
-    const anthropicStream = tailorResume(resumeText, jobText);
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        try {
-          for await (const event of anthropicStream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              const text = event.delta.text;
-              fullOutput += text;
-              controller.enqueue(encoder.encode(text));
-            }
-          }
-          controller.close();
-        } catch (err) {
-          controller.error(err);
-        }
-      },
-    });
+    const resumeJson = await tailorResume(resumeText, jobText);
 
     after(async () => {
-      if (!fullOutput) return;
       try {
         await prisma.tailoredResume.create({
           data: {
             clerkUserId: userId ?? null,
             resumeText,
             jobText,
-            outputText: fullOutput,
+            outputText: JSON.stringify(resumeJson),
             inputFilename: inputFilename ?? null,
             inputFormat: inputFormat ?? "paste",
           },
@@ -67,9 +44,7 @@ export async function POST(request: Request) {
       }
     });
 
-    return new Response(stream, {
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
+    return Response.json(resumeJson);
   } catch (err) {
     console.error("[tailor] AI call failed:", err);
     return Response.json(

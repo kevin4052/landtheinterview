@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { ResumeJSONSchema } from "@/lib/validators/resumeJson.schema";
+import { resumeToText } from "@/lib/utils/resumeToText";
 
 const DownloadRequestSchema = z.object({
-  text: z.string().min(1),
+  resume: ResumeJSONSchema,
   format: z.enum(["pdf", "docx"]),
+  template: z.enum(["classic", "modern", "two-column"]).optional().default("classic"),
 });
 
 export async function POST(request: Request) {
@@ -15,15 +18,18 @@ export async function POST(request: Request) {
 
   const parsed = DownloadRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: "text and format (pdf|docx) are required" }, { status: 400 });
+    return Response.json(
+      { error: "resume (ResumeJSON), format (pdf|docx), and optional template are required" },
+      { status: 400 }
+    );
   }
 
-  const { text, format } = parsed.data;
+  const { resume, format, template } = parsed.data;
 
   try {
     if (format === "docx") {
       const { generateDocx } = await import("@/lib/generators/generateDocx");
-      const buffer = await generateDocx(text);
+      const buffer = await generateDocx(resumeToText(resume));
       return new Response(new Uint8Array(buffer), {
         headers: {
           "Content-Type":
@@ -33,8 +39,17 @@ export async function POST(request: Request) {
       });
     }
 
-    const { generatePdf } = await import("@/lib/generators/generatePdf");
-    const buffer = await generatePdf(text);
+    const { generateClassicPdf, generateModernPdf, generateTwoColumnPdf } =
+      await import("@/lib/generators/generatePdf");
+
+    const generator =
+      template === "modern"
+        ? generateModernPdf
+        : template === "two-column"
+          ? generateTwoColumnPdf
+          : generateClassicPdf;
+
+    const buffer = await generator(resume);
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",

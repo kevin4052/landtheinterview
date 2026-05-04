@@ -7,99 +7,133 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import React from "react";
+import type { ResumeJSON, Section, Entry } from "@/lib/validators/resumeJson.schema";
 
-const styles = StyleSheet.create({
-  page: {
-    paddingTop: 36,
-    paddingBottom: 36,
-    paddingHorizontal: 48,
-    fontFamily: "Helvetica",
-    fontSize: 10,
-    lineHeight: 1.4,
-    color: "#111111",
-  },
-  name: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  contact: {
-    fontSize: 9,
-    textAlign: "center",
-    color: "#444444",
-    marginBottom: 2,
-  },
-  headerBlock: {
-    marginBottom: 10,
-  },
-  sectionHeader: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-    borderBottomWidth: 1,
-    borderBottomColor: "#000000",
-    marginTop: 10,
-    marginBottom: 4,
-    paddingBottom: 2,
-  },
-  bullet: {
-    flexDirection: "row",
-    marginBottom: 2,
-    paddingLeft: 10,
-  },
-  bulletDot: {
-    width: 10,
-    fontSize: 10,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 10,
-  },
-  line: {
-    marginBottom: 2,
-    fontSize: 10,
-  },
-});
+const PROFICIENCY_LABELS: Record<string, string> = {
+  native: "Native",
+  fluent: "Fluent",
+  professional: "Professional",
+  conversational: "Conversational",
+  basic: "Basic",
+};
 
-function isAllCaps(line: string) {
-  const stripped = line.replace(/[^a-zA-Z]/g, "");
-  return stripped.length > 2 && stripped === stripped.toUpperCase();
-}
+const SIDEBAR_TYPES = new Set(["skills", "languages", "certifications"]);
 
-function isSectionHeader(line: string) {
-  const trimmed = line.trim();
-  return (
-    isAllCaps(trimmed) ||
-    /^#{1,3}\s/.test(trimmed) ||
-    /^[A-Z][A-Za-z\s]+:?\s*$/.test(trimmed)
-  );
-}
+// ─── Shared helpers ──────────────────────────────────────────────────────────
 
-function buildPageContent(text: string) {
-  const lines = text.split("\n");
-  const nameLines: string[] = [];
-  const bodyLines: string[] = [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function EntryRows(entry: Entry, sectionType: string, styles: any): React.ReactElement[] {
+  const rows: React.ReactElement[] = [];
 
-  let headerDone = false;
-  for (const line of lines) {
-    if (!headerDone) {
-      if (line.trim()) {
-        nameLines.push(line.trim());
-      } else if (nameLines.length > 0) {
-        headerDone = true;
-      }
-    } else {
-      bodyLines.push(line);
-    }
+  if (sectionType === "languages") {
+    rows.push(
+      React.createElement(
+        View,
+        { key: "lang", style: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 } },
+        React.createElement(Text, { style: styles.line }, entry.heading ?? ""),
+        entry.level
+          ? React.createElement(Text, { style: styles.contact }, PROFICIENCY_LABELS[entry.level] ?? entry.level)
+          : null
+      )
+    );
+    return rows;
   }
-  if (!headerDone) bodyLines.push(...nameLines.splice(1));
 
-  return { nameLines, bodyLines };
+  if (sectionType === "skills") {
+    const content = entry.body ?? entry.bullets?.join(", ") ?? "";
+    rows.push(
+      React.createElement(
+        View,
+        { key: "skill", style: { flexDirection: "row", marginBottom: 2, flexWrap: "wrap" } },
+        entry.heading
+          ? React.createElement(Text, { style: styles.bold }, `${entry.heading}: `)
+          : null,
+        React.createElement(Text, { style: styles.line }, content)
+      )
+    );
+    return rows;
+  }
+
+  // Default: experience / education / projects / certifications / other
+  const hasHeader = entry.heading || entry.subheading || entry.date;
+  if (hasHeader) {
+    rows.push(
+      React.createElement(
+        View,
+        { key: "header", style: { flexDirection: "row", justifyContent: "space-between", marginBottom: 1 } },
+        React.createElement(
+          View,
+          { style: { flex: 1 } },
+          entry.heading
+            ? React.createElement(Text, { style: styles.bold }, entry.heading)
+            : null,
+          entry.subheading
+            ? React.createElement(Text, { style: styles.line }, entry.subheading)
+            : null
+        ),
+        entry.date
+          ? React.createElement(Text, { style: styles.contact }, entry.date)
+          : null
+      )
+    );
+  }
+
+  if (entry.body) {
+    rows.push(React.createElement(Text, { key: "body", style: styles.line }, entry.body));
+  }
+
+  if (entry.bullets) {
+    entry.bullets.forEach((bullet, i) => {
+      rows.push(
+        React.createElement(
+          View,
+          { key: `b${i}`, style: styles.bullet },
+          React.createElement(Text, { style: styles.bulletDot }, "\u2022  "),
+          React.createElement(Text, { style: styles.bulletText }, bullet)
+        )
+      );
+    });
+  }
+
+  return rows;
 }
 
-export async function generatePdf(resumeText: string): Promise<Buffer> {
-  const { nameLines, bodyLines } = buildPageContent(resumeText);
+// ─── Classic ─────────────────────────────────────────────────────────────────
+
+function buildClassicStyles() {
+  return StyleSheet.create({
+    page: {
+      paddingTop: 36,
+      paddingBottom: 36,
+      paddingHorizontal: 48,
+      fontFamily: "Helvetica",
+      fontSize: 10,
+      lineHeight: 1.4,
+      color: "#111111",
+    },
+    name: { fontSize: 18, fontFamily: "Helvetica-Bold", textAlign: "center", marginBottom: 4 },
+    contact: { fontSize: 9, textAlign: "center", color: "#444444", marginBottom: 2 },
+    headerBlock: { marginBottom: 10 },
+    sectionHeader: {
+      fontSize: 10,
+      fontFamily: "Helvetica-Bold",
+      textTransform: "uppercase",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000000",
+      marginTop: 10,
+      marginBottom: 4,
+      paddingBottom: 2,
+    },
+    line: { fontSize: 10, marginBottom: 2 },
+    bold: { fontSize: 10, fontFamily: "Helvetica-Bold", marginBottom: 1 },
+    bullet: { flexDirection: "row", marginBottom: 2, paddingLeft: 10 },
+    bulletDot: { width: 10, fontSize: 10 },
+    bulletText: { flex: 1, fontSize: 10 },
+  });
+}
+
+export async function generateClassicPdf(resume: ResumeJSON): Promise<Buffer> {
+  const styles = buildClassicStyles();
 
   const doc = React.createElement(
     Document,
@@ -110,39 +144,209 @@ export async function generatePdf(resumeText: string): Promise<Buffer> {
       React.createElement(
         View,
         { style: styles.headerBlock },
-        nameLines[0]
-          ? React.createElement(Text, { style: styles.name }, nameLines[0])
-          : null,
-        ...nameLines.slice(1).map((l, i) =>
-          React.createElement(Text, { key: `h${i}`, style: styles.contact }, l)
+        React.createElement(Text, { style: styles.name }, resume.name),
+        ...resume.contact.map((c, i) =>
+          React.createElement(Text, { key: i, style: styles.contact }, c)
         )
       ),
-      ...bodyLines.map((line, i) => {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          return React.createElement(View, { key: i, style: { height: 4 } });
-        }
-        if (isSectionHeader(trimmed)) {
-          return React.createElement(
-            Text,
-            { key: i, style: styles.sectionHeader },
-            trimmed.replace(/^#{1,3}\s/, "").toUpperCase()
-          );
-        }
-        if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
-          return React.createElement(
-            View,
-            { key: i, style: styles.bullet },
-            React.createElement(Text, { style: styles.bulletDot }, "•  "),
-            React.createElement(
-              Text,
-              { style: styles.bulletText },
-              trimmed.slice(2)
-            )
-          );
-        }
-        return React.createElement(Text, { key: i, style: styles.line }, trimmed);
-      })
+      resume.summary
+        ? React.createElement(Text, { style: { ...styles.line, marginBottom: 8 } }, resume.summary)
+        : null,
+      ...resume.sections.flatMap((section) => [
+        React.createElement(
+          Text,
+          { key: `s${section.title}`, style: styles.sectionHeader },
+          section.title.toUpperCase()
+        ),
+        ...section.entries.flatMap((entry, j) =>
+          EntryRows(entry, section.type, styles).map((el, k) =>
+            React.cloneElement(el, { key: `${section.title}-${j}-${k}` })
+          )
+        ),
+      ])
+    )
+  );
+
+  return Buffer.from(await renderToBuffer(doc));
+}
+
+// ─── Modern ──────────────────────────────────────────────────────────────────
+
+const MODERN_ACCENT = "#2563EB";
+
+function buildModernStyles() {
+  return StyleSheet.create({
+    page: {
+      paddingTop: 40,
+      paddingBottom: 40,
+      paddingHorizontal: 50,
+      fontFamily: "Helvetica",
+      fontSize: 10,
+      lineHeight: 1.5,
+      color: "#1a1a1a",
+    },
+    name: { fontSize: 20, fontFamily: "Helvetica-Bold", textAlign: "center", marginBottom: 3, color: "#111111" },
+    contact: { fontSize: 9, textAlign: "center", color: "#555555", marginBottom: 2 },
+    headerBlock: { marginBottom: 12 },
+    sectionHeader: {
+      fontSize: 10,
+      fontFamily: "Helvetica-Bold",
+      textTransform: "uppercase",
+      color: MODERN_ACCENT,
+      borderBottomWidth: 1,
+      borderBottomColor: MODERN_ACCENT,
+      marginTop: 12,
+      marginBottom: 5,
+      paddingBottom: 2,
+    },
+    line: { fontSize: 10, marginBottom: 2, color: "#1a1a1a" },
+    bold: { fontSize: 10, fontFamily: "Helvetica-Bold", marginBottom: 1, color: "#1a1a1a" },
+    bullet: { flexDirection: "row", marginBottom: 2, paddingLeft: 10 },
+    bulletDot: { width: 10, fontSize: 10, color: MODERN_ACCENT },
+    bulletText: { flex: 1, fontSize: 10 },
+  });
+}
+
+export async function generateModernPdf(resume: ResumeJSON): Promise<Buffer> {
+  const styles = buildModernStyles();
+
+  const doc = React.createElement(
+    Document,
+    null,
+    React.createElement(
+      Page,
+      { size: "LETTER" as const, style: styles.page },
+      React.createElement(
+        View,
+        { style: styles.headerBlock },
+        React.createElement(Text, { style: styles.name }, resume.name),
+        ...resume.contact.map((c, i) =>
+          React.createElement(Text, { key: i, style: styles.contact }, c)
+        )
+      ),
+      resume.summary
+        ? React.createElement(Text, { style: { ...styles.line, marginBottom: 10, color: "#444444" } }, resume.summary)
+        : null,
+      ...resume.sections.flatMap((section) => [
+        React.createElement(
+          Text,
+          { key: `s${section.title}`, style: styles.sectionHeader },
+          section.title.toUpperCase()
+        ),
+        ...section.entries.flatMap((entry, j) =>
+          EntryRows(entry, section.type, styles).map((el, k) =>
+            React.cloneElement(el, { key: `${section.title}-${j}-${k}` })
+          )
+        ),
+      ])
+    )
+  );
+
+  return Buffer.from(await renderToBuffer(doc));
+}
+
+// ─── Two-Column ───────────────────────────────────────────────────────────────
+
+const SIDEBAR_WIDTH = 160;
+const SIDEBAR_BG = "#f4f4f5";
+
+function buildTwoColumnStyles() {
+  return StyleSheet.create({
+    page: {
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingHorizontal: 0,
+      fontFamily: "Helvetica",
+      fontSize: 10,
+      lineHeight: 1.4,
+      color: "#111111",
+      flexDirection: "row",
+    },
+    sidebar: {
+      width: SIDEBAR_WIDTH,
+      backgroundColor: SIDEBAR_BG,
+      paddingTop: 36,
+      paddingBottom: 36,
+      paddingHorizontal: 16,
+    },
+    main: {
+      flex: 1,
+      paddingTop: 36,
+      paddingBottom: 36,
+      paddingHorizontal: 28,
+    },
+    name: { fontSize: 16, fontFamily: "Helvetica-Bold", marginBottom: 3 },
+    contact: { fontSize: 8, color: "#555555", marginBottom: 2 },
+    headerBlock: { marginBottom: 12 },
+    sectionHeader: {
+      fontSize: 9,
+      fontFamily: "Helvetica-Bold",
+      textTransform: "uppercase",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000000",
+      marginTop: 10,
+      marginBottom: 4,
+      paddingBottom: 2,
+    },
+    line: { fontSize: 9, marginBottom: 2 },
+    bold: { fontSize: 9, fontFamily: "Helvetica-Bold", marginBottom: 1 },
+    bullet: { flexDirection: "row", marginBottom: 2, paddingLeft: 8 },
+    bulletDot: { width: 8, fontSize: 9 },
+    bulletText: { flex: 1, fontSize: 9 },
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderSections(sections: Section[], styles: any): React.ReactElement[] {
+  return sections.flatMap((section) => [
+    React.createElement(
+      Text,
+      { key: `s${section.title}`, style: styles.sectionHeader },
+      section.title.toUpperCase()
+    ),
+    ...section.entries.flatMap((entry, j) =>
+      EntryRows(entry, section.type, styles).map((el, k) =>
+        React.cloneElement(el, { key: `${section.title}-${j}-${k}` })
+      )
+    ),
+  ]);
+}
+
+export async function generateTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> {
+  const styles = buildTwoColumnStyles();
+
+  const sidebarSections = resume.sections.filter((s) => SIDEBAR_TYPES.has(s.type));
+  const mainSections = resume.sections.filter((s) => !SIDEBAR_TYPES.has(s.type));
+
+  const doc = React.createElement(
+    Document,
+    null,
+    React.createElement(
+      Page,
+      { size: "LETTER" as const, style: styles.page },
+      // Sidebar
+      React.createElement(
+        View,
+        { style: styles.sidebar },
+        React.createElement(
+          View,
+          { style: styles.headerBlock },
+          React.createElement(Text, { style: styles.name }, resume.name),
+          ...resume.contact.map((c, i) =>
+            React.createElement(Text, { key: i, style: styles.contact }, c)
+          )
+        ),
+        ...renderSections(sidebarSections, styles)
+      ),
+      // Main column
+      React.createElement(
+        View,
+        { style: styles.main },
+        resume.summary
+          ? React.createElement(Text, { style: { ...styles.line, marginBottom: 10, color: "#444444" } }, resume.summary)
+          : null,
+        ...renderSections(mainSections, styles)
+      )
     )
   );
 
