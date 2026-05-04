@@ -1,21 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ResumePreview } from "@/app/components/ResumePreview";
+import { ResumeResultPanel } from "@/app/components/ResumeResultPanel";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
-import { resumeToText } from "@/lib/utils/resumeToText";
 
 type FileMetadata = {
   filename: string;
   format: "pdf" | "docx" | "txt";
-};
-
-type PdfTemplate = "classic" | "modern" | "two-column";
-
-const TEMPLATE_LABELS: Record<PdfTemplate, string> = {
-  classic: "Classic",
-  modern: "Modern",
-  "two-column": "Two-Column",
 };
 
 export default function UploadPage() {
@@ -27,8 +18,6 @@ export default function UploadPage() {
   const [fileMeta, setFileMeta] = useState<FileMetadata | null>(null);
   const [parsing, setParsing] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [downloadingFormat, setDownloadingFormat] = useState<"pdf" | "docx" | null>(null);
-  const [template, setTemplate] = useState<PdfTemplate>("classic");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseFile = useCallback(async (file: File) => {
@@ -108,39 +97,6 @@ export default function UploadPage() {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
-    }
-  }
-
-  function handleCopy() {
-    if (!output) return;
-    navigator.clipboard.writeText(resumeToText(output));
-  }
-
-  async function handleDownload(format: "pdf" | "docx") {
-    if (!output) return;
-    setDownloadingFormat(format);
-    try {
-      const res = await fetch("/api/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume: output, format, template }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error ?? "Failed to generate file.");
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `tailored-resume.${format}`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      setError("Failed to generate file. Please try again.");
-    } finally {
-      setDownloadingFormat(null);
     }
   }
 
@@ -265,48 +221,6 @@ export default function UploadPage() {
 
         {(output || loading) && (
           <div className="mt-10">
-            <div className="flex items-center justify-between mb-3 gap-4 flex-wrap">
-              <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
-                Tailored Resume
-              </h2>
-              {output && !loading && (
-                <div className="flex items-center gap-3 flex-wrap">
-                  <button
-                    onClick={handleCopy}
-                    className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                  >
-                    Copy
-                  </button>
-                  <select
-                    value={template}
-                    onChange={(e) => setTemplate(e.target.value as PdfTemplate)}
-                    className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
-                    aria-label="PDF template"
-                  >
-                    {(Object.keys(TEMPLATE_LABELS) as PdfTemplate[]).map((t) => (
-                      <option key={t} value={t}>
-                        {TEMPLATE_LABELS[t]}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => handleDownload("pdf")}
-                    disabled={downloadingFormat !== null}
-                    className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {downloadingFormat === "pdf" ? "Generating…" : "↓ PDF"}
-                  </button>
-                  <button
-                    onClick={() => handleDownload("docx")}
-                    disabled={downloadingFormat !== null}
-                    className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {downloadingFormat === "docx" ? "Generating…" : "↓ DOCX"}
-                  </button>
-                </div>
-              )}
-            </div>
-
             {loading && !output && (
               <div className="flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-6 py-16">
                 <span className="text-sm text-zinc-400 dark:text-zinc-600">
@@ -315,7 +229,7 @@ export default function UploadPage() {
               </div>
             )}
 
-            {output && <ResumePreview resume={output} />}
+            {output && <ResumeResultPanel resume={output} />}
           </div>
         )}
       </div>

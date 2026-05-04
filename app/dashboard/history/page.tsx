@@ -49,35 +49,27 @@ export default async function HistoryPage() {
       ) : (
         <ul className="divide-y divide-neutral-200">
           {resumes.map((r) => (
-            <li key={r.id} className="py-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium text-sm">
-                  {r.inputFilename ?? "Pasted resume"}
-                </p>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  {new Date(r.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <a
-                  href={`/api/resumes/${r.id}/download?format=pdf`}
-                  className="text-xs font-medium px-3 py-1.5 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors"
-                >
-                  PDF
-                </a>
-                <a
-                  href={`/api/resumes/${r.id}/download?format=docx`}
-                  className="text-xs font-medium px-3 py-1.5 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors"
-                >
-                  DOCX
-                </a>
-              </div>
+            <li key={r.id}>
+              <Link
+                href={`/dashboard/history/${r.id}`}
+                className="py-4 flex items-center justify-between gap-4 hover:bg-neutral-50 transition-colors rounded-lg px-2 -mx-2"
+              >
+                <div>
+                  <p className="font-medium text-sm">
+                    {r.inputFilename ?? "Pasted resume"}
+                  </p>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    {new Date(r.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <span className="text-xs text-neutral-400 shrink-0">View →</span>
+              </Link>
             </li>
           ))}
         </ul>
