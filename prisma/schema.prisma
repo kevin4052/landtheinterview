@@ -16,6 +16,7 @@ model TailoredResume {
   inputFilename String?
   inputFormat   String?
   outputFormat  String?
+  title         String?
   createdAt     DateTime @default(now())
 
   @@index([clerkUserId])

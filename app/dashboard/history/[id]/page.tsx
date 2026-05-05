@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ResumeResultPanel } from "@/app/components/ResumeResultPanel";
+import { ResumeTitleEditor } from "@/app/components/ResumeTitleEditor";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
 
 export default async function ResumeDetailPage({
@@ -17,6 +18,7 @@ export default async function ResumeDetailPage({
     where: { id, clerkUserId: userId },
     select: {
       inputFilename: true,
+      title: true,
       outputText: true,
       createdAt: true,
     },
@@ -31,7 +33,7 @@ export default async function ResumeDetailPage({
     notFound();
   }
 
-  const label = resume.inputFilename ?? "Pasted resume";
+  const resolvedTitle = resume.title ?? resume.inputFilename ?? "Pasted resume";
   const date = new Date(resume.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -50,9 +52,7 @@ export default async function ResumeDetailPage({
           ← Resume History
         </Link>
         <div className="mt-4">
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {label}
-          </h1>
+          <ResumeTitleEditor id={id} title={resolvedTitle} />
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{date}</p>
         </div>
       </div>

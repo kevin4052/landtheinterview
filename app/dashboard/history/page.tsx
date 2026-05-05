@@ -1,11 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db/prisma";
 import Link from "next/link";
+import { ResumeHistoryItem } from "@/app/components/ResumeHistoryItem";
 
 export default async function HistoryPage() {
   const { userId } = await auth();
 
-  let resumes: { id: string; inputFilename: string | null; outputFormat: string | null; createdAt: Date }[] = [];
+  let resumes: { id: string; inputFilename: string | null; title: string | null; outputFormat: string | null; createdAt: Date }[] = [];
   let dbError = false;
 
   try {
@@ -15,6 +16,7 @@ export default async function HistoryPage() {
       select: {
         id: true,
         inputFilename: true,
+        title: true,
         outputFormat: true,
         createdAt: true,
       },
@@ -49,28 +51,18 @@ export default async function HistoryPage() {
       ) : (
         <ul className="divide-y divide-neutral-200">
           {resumes.map((r) => (
-            <li key={r.id}>
-              <Link
-                href={`/dashboard/history/${r.id}`}
-                className="py-4 flex items-center justify-between gap-4 hover:bg-neutral-50 transition-colors rounded-lg px-2 -mx-2"
-              >
-                <div>
-                  <p className="font-medium text-sm">
-                    {r.inputFilename ?? "Pasted resume"}
-                  </p>
-                  <p className="text-xs text-neutral-500 mt-0.5">
-                    {new Date(r.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-                <span className="text-xs text-neutral-400 shrink-0">View →</span>
-              </Link>
-            </li>
+            <ResumeHistoryItem
+              key={r.id}
+              id={r.id}
+              title={r.title ?? r.inputFilename ?? "Pasted resume"}
+              date={new Date(r.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            />
           ))}
         </ul>
       )}

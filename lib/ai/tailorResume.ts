@@ -1,8 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import {
-  ResumeJSONSchema,
-  type ResumeJSON,
-} from "@/lib/validators/resumeJson.schema";
+import { TailorOutputSchema, type TailorOutput } from "@/lib/validators/tailorOutput.schema";
 
 const client = new Anthropic();
 
@@ -13,34 +10,42 @@ Rewrite the resume below to match the job posting. Return ONLY a valid JSON obje
 The JSON must conform to this schema:
 
 {
-  "name": string,
-  "contact": string[],
-  "summary": string,
-  "sections": [
-    {
-      "title": string,
-      "type": "experience" | "education" | "skills" | "projects" | "certifications" | "languages" | "other",
-      "entries": [
-        {
-          "heading": string,
-          "subheading": string,
-          "date": string,
-          "bullets": string[],
-          "body": string,
-          "level": "native" | "fluent" | "professional" | "conversational" | "basic"
-        }
-      ]
-    }
-  ]
+  "resume": {
+    "name": string,
+    "contact": string[],
+    "summary": string,
+    "sections": [
+      {
+        "title": string,
+        "type": "experience" | "education" | "skills" | "projects" | "certifications" | "languages" | "other",
+        "entries": [
+          {
+            "heading": string,
+            "subheading": string,
+            "date": string,
+            "bullets": string[],
+            "body": string,
+            "level": "native" | "fluent" | "professional" | "conversational" | "basic"
+          }
+        ]
+      }
+    ]
+  },
+  "jobTitle": string | null,
+  "companyName": string | null
 }
 
-Field rules:
+Field rules for "resume":
 - "contact": each contact item (email, phone, LinkedIn, location) as a separate string
 - "summary": omit the field entirely if the original resume has no summary
 - All entry fields are optional — only include fields that have content
 - "bullets": bullet text without any leading dash or bullet character
 - "level": only for language entries; omit for all other entry types
 - "body": for prose entries instead of bullets (e.g. a skills group listed as a sentence)
+
+Field rules for "jobTitle" and "companyName":
+- Extract the job title and company name from the job posting
+- Set to null if a field cannot be determined from the job posting
 
 Tailoring rules:
 - Keep it truthful — do not fabricate experience or skills
@@ -75,7 +80,7 @@ function extractJson(text: string): unknown {
 export async function tailorResume(
   resumeText: string,
   jobText: string
-): Promise<ResumeJSON> {
+): Promise<TailorOutput> {
   const response = await client.messages.create({
     model: "claude-opus-4-7",
     max_tokens: 8192,
@@ -101,10 +106,10 @@ export async function tailorResume(
   }
 
   const raw = extractJson(textBlock.text);
-  const parsed = ResumeJSONSchema.safeParse(raw);
+  const parsed = TailorOutputSchema.safeParse(raw);
   if (!parsed.success) {
     throw new Error(
-      `Model returned invalid ResumeJSON: ${parsed.error.message}`
+      `Model returned invalid TailorOutput: ${parsed.error.message}`
     );
   }
   return parsed.data;
