@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { z } from "zod";
 
 const PatchBodySchema = z.object({
-  title: z.string(),
+  title: z.string().min(1),
 });
 
 export async function PATCH(
@@ -41,6 +41,7 @@ export async function PATCH(
   const updated = await prisma.tailoredResume.update({
     where: { id },
     data: { title: parsed.data.title },
+    select: { id: true, title: true },
   });
 
   return Response.json(updated);

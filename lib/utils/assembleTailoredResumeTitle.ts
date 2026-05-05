@@ -9,5 +9,5 @@ export function assembleTailoredResumeTitle(
   if (title && company) return `${title} - ${company}`;
   if (title) return title;
   if (company) return company;
-  return `Resume - ${createdAt.toLocaleDateString()}`;
+  return `Resume - ${createdAt.toLocaleDateString("en-US")}`;
 }

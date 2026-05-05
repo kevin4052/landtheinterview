@@ -56,31 +56,33 @@ export function ResumeTitleEditor({ id, title: initialTitle }: ResumeTitleEditor
   }
 
   return (
-    <div className="flex items-center gap-2 group">
-      {editing ? (
-        <input
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={save}
-          onKeyDown={onKeyDown}
-          className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 bg-transparent border-b border-zinc-400 dark:border-zinc-500 outline-none w-full"
-          autoFocus
-        />
-      ) : (
-        <>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {title}
-          </h1>
-          <button
-            onClick={startEditing}
-            aria-label="Rename"
-            className="opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 opacity-100 md:opacity-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-opacity flex-shrink-0"
-          >
-            <PencilIcon />
-          </button>
-        </>
-      )}
+    <div>
+      <div className="flex items-center gap-2 group">
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={save}
+            onKeyDown={onKeyDown}
+            className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 bg-transparent border-b border-zinc-400 dark:border-zinc-500 outline-none w-full"
+            autoFocus
+          />
+        ) : (
+          <>
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+              {title}
+            </h1>
+            <button
+              onClick={startEditing}
+              aria-label="Rename"
+              className="opacity-100 md:opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-opacity flex-shrink-0"
+            >
+              <PencilIcon />
+            </button>
+          </>
+        )}
+      </div>
       {error && (
         <p className="text-xs text-red-600 mt-1">{error}</p>
       )}
