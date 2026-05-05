@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db/prisma";
 import { tailorResume } from "@/lib/ai/tailorResume";
 import { TailorRequestSchema } from "@/lib/validators/tailor.schema";
+import { assembleTailoredResumeTitle } from "@/lib/utils/assembleTailoredResumeTitle";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -25,10 +26,13 @@ export async function POST(request: Request) {
   const { resumeText, jobText, inputFilename, inputFormat } = parsed.data;
 
   try {
-    const resumeJson = await tailorResume(resumeText, jobText);
+    const tailorOutput = await tailorResume(resumeText, jobText);
+    const { resume: resumeJson, jobTitle, companyName } = tailorOutput;
 
     after(async () => {
       try {
+        const createdAt = new Date();
+        const title = assembleTailoredResumeTitle(jobTitle, companyName, createdAt);
         await prisma.tailoredResume.create({
           data: {
             clerkUserId: userId ?? null,
@@ -37,6 +41,7 @@ export async function POST(request: Request) {
             outputText: JSON.stringify(resumeJson),
             inputFilename: inputFilename ?? null,
             inputFormat: inputFormat ?? "paste",
+            title,
           },
         });
       } catch (err) {
