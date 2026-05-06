@@ -1,10 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db/prisma";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { TailorPanel } from "@/app/components/TailorPanel";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
+
+  if (!userId) notFound();
 
   let recentResumes: { id: string; title: string | null; createdAt: Date }[] = [];
 
@@ -15,8 +18,8 @@ export default async function DashboardPage() {
       take: 5,
       select: { id: true, title: true, createdAt: true },
     });
-  } catch {
-    // non-fatal — page still renders without recent resumes
+  } catch (err) {
+    console.error("[dashboard] failed to load recent resumes", err);
   }
 
   return (
