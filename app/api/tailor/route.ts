@@ -4,9 +4,23 @@ import { prisma } from "@/lib/db/prisma";
 import { tailorResume } from "@/lib/ai/tailorResume";
 import { TailorRequestSchema } from "@/lib/validators/tailor.schema";
 import { assembleTailoredResumeTitle } from "@/lib/utils/assembleTailoredResumeTitle";
+import { getProfileByClerkId } from "@/lib/db/profile";
+import { serializeProfileToResumeText } from "@/lib/serializers/profileSerializer";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const profile = await getProfileByClerkId(userId);
+  if (!profile) {
+    return Response.json(
+      { error: "No profile found. Please complete your profile before tailoring a resume." },
+      { status: 400 }
+    );
+  }
 
   let body: unknown;
   try {
@@ -18,12 +32,13 @@ export async function POST(request: Request) {
   const parsed = TailorRequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json(
-      { error: "Resume and job posting text are required" },
+      { error: "Job posting text is required" },
       { status: 400 }
     );
   }
 
-  const { resumeText, jobText, inputFilename, inputFormat } = parsed.data;
+  const { jobText } = parsed.data;
+  const resumeText = serializeProfileToResumeText(profile);
 
   try {
     const tailorOutput = await tailorResume(resumeText, jobText);
@@ -35,12 +50,10 @@ export async function POST(request: Request) {
         const title = assembleTailoredResumeTitle(jobTitle, companyName, createdAt);
         await prisma.tailoredResume.create({
           data: {
-            clerkUserId: userId ?? null,
+            clerkUserId: userId,
             resumeText,
             jobText,
             outputText: JSON.stringify(resumeJson),
-            inputFilename: inputFilename ?? null,
-            inputFormat: inputFormat ?? "paste",
             title,
           },
         });
