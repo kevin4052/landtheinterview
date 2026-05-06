@@ -104,7 +104,7 @@ export default function UploadPage() {
     resumeText.trim().length > 0 && jobText.trim().length > 0 && !parsing;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="mb-10">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -168,7 +168,7 @@ export default function UploadPage() {
                       : "Paste your resume or drag & drop a PDF, DOCX, or TXT file…"
                   }
                   rows={18}
-                  className="w-full rounded-lg bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 resize-none focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                  className="w-full rounded-lg bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {fileMeta && (
                   <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
@@ -199,7 +199,7 @@ export default function UploadPage() {
                 onChange={(e) => setJobText(e.target.value)}
                 placeholder="Paste the job description here…"
                 rows={18}
-                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 resize-none focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function UploadPage() {
           <button
             type="submit"
             disabled={!canSubmit || loading}
-            className="w-full rounded-lg bg-zinc-900 dark:bg-zinc-50 px-6 py-3 text-sm font-medium text-white dark:text-zinc-900 transition-colors hover:bg-zinc-700 dark:hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? "Tailoring your resume…" : "Tailor My Resume"}
           </button>

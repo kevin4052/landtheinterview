@@ -16,7 +16,7 @@ export default function LandingPage() {
         <div className="mt-10 flex flex-col sm:flex-row gap-3 items-center">
           <Show when="signed-out">
             <SignUpButton fallbackRedirectUrl="/dashboard/history">
-              <button className="bg-black text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer">
+              <button className="bg-primary text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors cursor-pointer">
                 Tailor My Resume
               </button>
             </SignUpButton>
@@ -29,7 +29,7 @@ export default function LandingPage() {
           <Show when="signed-in">
             <Link
               href="/dashboard/history"
-              className="bg-black text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer"
+              className="bg-primary text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors cursor-pointer"
             >
               Go to Dashboard
             </Link>

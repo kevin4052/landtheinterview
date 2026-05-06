@@ -66,7 +66,7 @@ export function ResumeResultPanel({ resume }: { resume: ResumeJSON }) {
           <select
             value={template}
             onChange={(e) => setTemplate(e.target.value as PdfTemplate)}
-            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="PDF template"
           >
             {(Object.keys(TEMPLATE_LABELS) as PdfTemplate[]).map((t) => (
