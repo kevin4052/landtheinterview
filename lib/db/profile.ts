@@ -43,8 +43,8 @@ export async function createProfile(
 // WorkExperience mutations
 
 export type WorkExperienceCreateData = Omit<
-  Prisma.WorkExperienceUncheckedCreateInput,
-  "id" | "profileId"
+  Prisma.WorkExperienceCreateInput,
+  "id" | "profile"
 >;
 
 export type WorkExperienceUpdateData = Partial<WorkExperienceCreateData>;
@@ -53,12 +53,8 @@ export async function createWorkExperience(
   clerkUserId: string,
   data: WorkExperienceCreateData
 ) {
-  const profile = await prisma.userProfile.findUniqueOrThrow({
-    where: { clerkUserId },
-    select: { id: true },
-  });
   return prisma.workExperience.create({
-    data: { ...data, profileId: profile.id },
+    data: { ...data, profile: { connect: { clerkUserId } } },
   });
 }
 
@@ -76,8 +72,8 @@ export async function deleteWorkExperience(id: string) {
 // Education mutations
 
 export type EducationCreateData = Omit<
-  Prisma.EducationUncheckedCreateInput,
-  "id" | "profileId"
+  Prisma.EducationCreateInput,
+  "id" | "profile"
 >;
 
 export type EducationUpdateData = Partial<EducationCreateData>;
@@ -86,12 +82,8 @@ export async function createEducation(
   clerkUserId: string,
   data: EducationCreateData
 ) {
-  const profile = await prisma.userProfile.findUniqueOrThrow({
-    where: { clerkUserId },
-    select: { id: true },
-  });
   return prisma.education.create({
-    data: { ...data, profileId: profile.id },
+    data: { ...data, profile: { connect: { clerkUserId } } },
   });
 }
 
@@ -106,8 +98,8 @@ export async function deleteEducation(id: string) {
 // SkillCategory mutations
 
 export type SkillCategoryCreateData = Omit<
-  Prisma.SkillCategoryUncheckedCreateInput,
-  "id" | "profileId"
+  Prisma.SkillCategoryCreateInput,
+  "id" | "profile"
 >;
 
 export type SkillCategoryUpdateData = Partial<SkillCategoryCreateData>;
@@ -116,12 +108,8 @@ export async function createSkillCategory(
   clerkUserId: string,
   data: SkillCategoryCreateData
 ) {
-  const profile = await prisma.userProfile.findUniqueOrThrow({
-    where: { clerkUserId },
-    select: { id: true },
-  });
   return prisma.skillCategory.create({
-    data: { ...data, profileId: profile.id },
+    data: { ...data, profile: { connect: { clerkUserId } } },
   });
 }
 
