@@ -39,7 +39,7 @@ export default function RootLayout({
               <Show when="signed-out">
                 <SignInButton />
                 <SignUpButton>
-                  <button className="bg-black text-white rounded-lg font-medium text-sm px-4 py-2 cursor-pointer hover:bg-neutral-800 transition-colors">
+                  <button className="bg-primary text-white rounded-lg font-medium text-sm px-4 py-2 cursor-pointer hover:bg-primary-hover transition-colors">
                     Sign Up
                   </button>
                 </SignUpButton>
