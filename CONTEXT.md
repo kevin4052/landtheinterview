@@ -1,12 +1,28 @@
 # Land the Interview
 
-A web app that accepts a user's resume and a job posting, then uses AI to produce a tailored resume optimized for that specific role.
+A web app that tailors a user's resume to a specific job posting using AI, drawing on the user's persistent career profile.
 
 ## Language
 
+**User Profile**:
+The persistent record of a user's career data — name, contact email, work experience, education, and skills. Created at onboarding and editable at any time. The source of truth for all Tailor operations.
+_Avoid_: resume, CV, profile data
+
+**Work Experience**:
+A single job entry within a User Profile — company, title, start/end dates, isCurrent flag, optional location, and bullet points.
+_Avoid_: job, role, position
+
+**Education**:
+An academic entry within a User Profile — school, degree, field of study, and dates.
+_Avoid_: degree, school record
+
+**Skill Category**:
+A named group of skills within a User Profile (e.g. "Languages", "Frameworks").
+_Avoid_: skill set, skill group
+
 **Resume**:
-Raw text of a user's career document, submitted as input to a Tailor operation.
-_Avoid_: CV, document, file
+Serialized plain text produced from a User Profile, passed as input to a Tailor operation.
+_Avoid_: CV, document, file, upload
 
 **Job Posting**:
 Raw text of a job description, submitted as input to a Tailor operation.
@@ -17,24 +33,29 @@ AI-generated resume text that rewrites the Resume to match a specific Job Postin
 _Avoid_: Optimized resume, rewritten resume, output
 
 **Tailor**:
-The core operation — streaming a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
+The core operation — producing a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
 _Avoid_: Generate, optimize, process
 
 **Tailor Log**:
-A persisted DB record of a completed Tailor operation. Stores raw inputs and output for internal logging only — not user-facing in Phase 1.
+A persisted DB record of a completed Tailor operation. Stores the serialized Resume text, Job Posting text, and Tailored Resume text for the user's history and internal audit.
 _Avoid_: Record, history, result
 
 ## Relationships
 
+- A **User Profile** is serialized into a **Resume** text before being passed to a **Tailor** operation
 - A **Tailor** operation takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
 - A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor** operation
 
 ## Example dialogue
 
-> **Dev:** "When the user submits, do we store the Resume separately before Tailoring?"
-> **Domain expert:** "No — in Phase 1 there's no separate Resume record. The Resume text goes straight into the Tailor operation. Only the Tailor Log is persisted."
+> **Dev:** "When the user tailors, where does the Resume text come from?"
+> **Domain expert:** "From their User Profile. We serialize it server-side — the Tailor prompt receives plain text exactly as before. The user never uploads a file."
+
+> **Dev:** "What if the user updates their Profile between two Tailor operations — do old records become stale?"
+> **Domain expert:** "No — the Tailor Log stores the serialized Resume text at the time of the operation. The Profile is the live source of truth; the Tailor Log is the audit trail."
 
 ## Flagged ambiguities
 
-- "results" was used in the spec to mean both the `/results/[id]` route and the Tailored Resume text shown inline — resolved: Phase 1 shows the Tailored Resume inline on the upload page; the results route is Phase 2.
-- "parse" was used to mean both an intermediate AI step and the internal extraction logic — resolved: Phase 1 has no parse step; the Tailor operation processes raw text directly.
+- "results" was used in the spec to mean both the `/results/[id]` route and the Tailored Resume text shown inline — resolved: Phase 3 shows the Tailored Resume inline on the dashboard; the `/dashboard/history/[id]` route is the detail page.
+- "parse" was used to mean both an intermediate AI step and the internal extraction logic — resolved: there is no parse step; the Tailor operation processes plain text directly (ADR-0001).
+- "resume" was used in Phase 1–2 to mean an uploaded file — resolved: in Phase 3 "Resume" refers to serialized Profile text. "Upload" and "file" are not part of domain language (ADR-0005).
