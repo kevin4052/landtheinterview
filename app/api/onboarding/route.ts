@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { profileIsComplete } from "@/lib/db/profile";
+import { parseMonthDate } from "@/lib/utils/date";
 
 const WorkExpSchema = z.object({
   company: z.string().min(1),
@@ -10,7 +11,7 @@ const WorkExpSchema = z.object({
   endDate: z.string().optional(),
   isCurrent: z.boolean(),
   location: z.string().optional(),
-  bullets: z.array(z.string()),
+  bullets: z.array(z.string().min(1)),
 });
 
 const SkillCatSchema = z.object({
@@ -35,9 +36,6 @@ const OnboardingBodySchema = z.object({
   education: z.array(EducationSchema),
 });
 
-function parseMonthDate(s: string): Date {
-  return new Date(s.length === 7 ? s + "-01" : s);
-}
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -79,7 +77,7 @@ export async function POST(request: Request) {
               endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
               isCurrent: exp.isCurrent,
               location: exp.location || null,
-              bullets: exp.bullets.filter(Boolean),
+              bullets: exp.bullets,
             },
           })
         ),
