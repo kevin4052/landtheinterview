@@ -116,16 +116,19 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
 type ItemProps = {
   category: SkillCategoryEntry;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean>;
 };
 
 function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
   async function handleDelete() {
     setDeleting(true);
-    await onDelete();
+    setDeleteError(false);
+    const ok = await onDelete();
     setDeleting(false);
+    if (!ok) setDeleteError(true);
   }
 
   return (
@@ -144,20 +147,25 @@ function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
             ))}
           </div>
         </div>
-        <div className="flex shrink-0 gap-3">
-          <button
-            onClick={onEdit}
-            className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
-          >
-            {deleting ? "…" : "Delete"}
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex gap-3">
+            <button
+              onClick={onEdit}
+              className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
+            >
+              {deleting ? "…" : "Delete"}
+            </button>
+          </div>
+          {deleteError && (
+            <p className="text-xs text-red-500">Failed to delete. Try again.</p>
+          )}
         </div>
       </div>
     </div>
@@ -202,9 +210,13 @@ export function SkillsSection({ initialCategories }: Props) {
     return false;
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string): Promise<boolean> {
     const res = await fetch(`/api/profile/skill-categories/${id}`, { method: "DELETE" });
-    if (res.ok) refresh();
+    if (res.ok) {
+      refresh();
+      return true;
+    }
+    return false;
   }
 
   return (

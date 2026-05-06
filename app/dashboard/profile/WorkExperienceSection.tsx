@@ -3,24 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { WorkExperienceEntry } from "./types";
+import { toMonthInput, formatMonth } from "./dateUtils";
 
 type Props = {
   initialEntries: WorkExperienceEntry[];
 };
-
-function toMonthInput(date: Date | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function formatMonth(date: Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 type FormState = {
   company: string;
@@ -204,16 +191,19 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
 type ItemProps = {
   entry: WorkExperienceEntry;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean>;
 };
 
 function WorkExpItem({ entry, onEdit, onDelete }: ItemProps) {
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
   async function handleDelete() {
     setDeleting(true);
-    await onDelete();
+    setDeleteError(false);
+    const ok = await onDelete();
     setDeleting(false);
+    if (!ok) setDeleteError(true);
   }
 
   const dateRange = `${formatMonth(entry.startDate)} – ${
@@ -241,20 +231,25 @@ function WorkExpItem({ entry, onEdit, onDelete }: ItemProps) {
             </ul>
           )}
         </div>
-        <div className="flex shrink-0 gap-3">
-          <button
-            onClick={onEdit}
-            className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
-          >
-            {deleting ? "…" : "Delete"}
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex gap-3">
+            <button
+              onClick={onEdit}
+              className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
+            >
+              {deleting ? "…" : "Delete"}
+            </button>
+          </div>
+          {deleteError && (
+            <p className="text-xs text-red-500">Failed to delete. Try again.</p>
+          )}
         </div>
       </div>
     </div>
@@ -270,10 +265,6 @@ export function WorkExperienceSection({ initialEntries }: Props) {
   function refresh() {
     startTransition(() => router.refresh());
   }
-
-  const sorted = [...initialEntries].sort(
-    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-  );
 
   async function handleAdd(payload: ReturnType<typeof formToPayload>) {
     const res = await fetch("/api/profile/work-experience", {
@@ -303,9 +294,13 @@ export function WorkExperienceSection({ initialEntries }: Props) {
     return false;
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string): Promise<boolean> {
     const res = await fetch(`/api/profile/work-experience/${id}`, { method: "DELETE" });
-    if (res.ok) refresh();
+    if (res.ok) {
+      refresh();
+      return true;
+    }
+    return false;
   }
 
   return (
@@ -330,11 +325,11 @@ export function WorkExperienceSection({ initialEntries }: Props) {
           />
         )}
 
-        {sorted.length === 0 && !isAdding && (
+        {initialEntries.length === 0 && !isAdding && (
           <p className="text-sm text-neutral-500">No work experience added yet.</p>
         )}
 
-        {sorted.map((entry) =>
+        {initialEntries.map((entry) =>
           editingId === entry.id ? (
             <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
               <WorkExpForm

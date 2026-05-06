@@ -3,24 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { EducationEntry } from "./types";
+import { toMonthInput, formatMonth } from "./dateUtils";
 
 type Props = {
   initialEntries: EducationEntry[];
 };
-
-function toMonthInput(date: Date | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function formatMonth(date: Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 type FormState = {
   school: string;
@@ -185,16 +172,19 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
 type ItemProps = {
   entry: EducationEntry;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean>;
 };
 
 function EduItem({ entry, onEdit, onDelete }: ItemProps) {
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
   async function handleDelete() {
     setDeleting(true);
-    await onDelete();
+    setDeleteError(false);
+    const ok = await onDelete();
     setDeleting(false);
+    if (!ok) setDeleteError(true);
   }
 
   const dateRange = `${formatMonth(entry.startDate)} – ${
@@ -211,20 +201,25 @@ function EduItem({ entry, onEdit, onDelete }: ItemProps) {
           </p>
           <p className="mt-0.5 text-xs text-neutral-500">{dateRange}</p>
         </div>
-        <div className="flex shrink-0 gap-3">
-          <button
-            onClick={onEdit}
-            className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
-          >
-            {deleting ? "…" : "Delete"}
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex gap-3">
+            <button
+              onClick={onEdit}
+              className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
+            >
+              {deleting ? "…" : "Delete"}
+            </button>
+          </div>
+          {deleteError && (
+            <p className="text-xs text-red-500">Failed to delete. Try again.</p>
+          )}
         </div>
       </div>
     </div>
@@ -269,9 +264,13 @@ export function EducationSection({ initialEntries }: Props) {
     return false;
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string): Promise<boolean> {
     const res = await fetch(`/api/profile/education/${id}`, { method: "DELETE" });
-    if (res.ok) refresh();
+    if (res.ok) {
+      refresh();
+      return true;
+    }
+    return false;
   }
 
   return (

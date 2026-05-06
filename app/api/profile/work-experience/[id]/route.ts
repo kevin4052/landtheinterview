@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { updateWorkExperience, deleteWorkExperience } from "@/lib/db/profile";
+import { parseMonthDate } from "@/lib/utils/date";
 
 const WorkExpUpdateSchema = z.object({
   company: z.string().min(1).optional(),
@@ -10,12 +11,8 @@ const WorkExpUpdateSchema = z.object({
   endDate: z.string().nullable().optional(),
   isCurrent: z.boolean().optional(),
   location: z.string().nullable().optional(),
-  bullets: z.array(z.string()).optional(),
+  bullets: z.array(z.string().min(1)).optional(),
 });
-
-function parseMonthDate(s: string): Date {
-  return new Date(s.length === 7 ? s + "-01" : s);
-}
 
 async function verifyOwnership(id: string, userId: string) {
   return prisma.workExperience.findFirst({
@@ -55,7 +52,7 @@ export async function PATCH(
       ...rest,
       ...(startDate !== undefined ? { startDate: parseMonthDate(startDate) } : {}),
       ...(endDate !== undefined ? { endDate: endDate ? parseMonthDate(endDate) : null } : {}),
-      ...(bullets !== undefined ? { bullets: bullets.filter(Boolean) } : {}),
+      ...(bullets !== undefined ? { bullets } : {}),
     });
     return Response.json(updated);
   } catch (err) {

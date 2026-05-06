@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createEducation } from "@/lib/db/profile";
+import { parseMonthDate } from "@/lib/utils/date";
 
 const EducationSchema = z.object({
   school: z.string().min(1),
@@ -10,10 +11,6 @@ const EducationSchema = z.object({
   endDate: z.string().optional(),
   isCurrent: z.boolean(),
 });
-
-function parseMonthDate(s: string): Date {
-  return new Date(s.length === 7 ? s + "-01" : s);
-}
 
 export async function POST(request: Request) {
   const { userId } = await auth();

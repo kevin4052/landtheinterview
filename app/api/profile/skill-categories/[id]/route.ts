@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { deleteSkillCategory } from "@/lib/db/profile";
+import { updateSkillCategory, deleteSkillCategory } from "@/lib/db/profile";
 
 const SkillCategoryUpdateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -41,12 +41,9 @@ export async function PATCH(
 
   try {
     const { name, skills } = parsed.data;
-    const updated = await prisma.skillCategory.update({
-      where: { id },
-      data: {
-        ...(name !== undefined ? { name } : {}),
-        ...(skills !== undefined ? { skills: { set: skills } } : {}),
-      },
+    const updated = await updateSkillCategory(id, {
+      ...(name !== undefined ? { name } : {}),
+      ...(skills !== undefined ? { skills } : {}),
     });
     return Response.json(updated);
   } catch (err) {

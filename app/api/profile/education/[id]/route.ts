@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { updateEducation, deleteEducation } from "@/lib/db/profile";
+import { parseMonthDate } from "@/lib/utils/date";
 
 const EducationUpdateSchema = z.object({
   school: z.string().min(1).optional(),
@@ -11,10 +12,6 @@ const EducationUpdateSchema = z.object({
   endDate: z.string().nullable().optional(),
   isCurrent: z.boolean().optional(),
 });
-
-function parseMonthDate(s: string): Date {
-  return new Date(s.length === 7 ? s + "-01" : s);
-}
 
 async function verifyOwnership(id: string, userId: string) {
   return prisma.education.findFirst({
