@@ -21,3 +21,48 @@ model TailoredResume {
 
   @@index([clerkUserId])
 }
+
+model UserProfile {
+  id             String           @id @default(cuid())
+  clerkUserId    String           @unique
+  name           String
+  email          String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  workExperience WorkExperience[]
+  education      Education[]
+  skillCategories SkillCategory[]
+}
+
+model WorkExperience {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   UserProfile @relation(fields: [profileId], references: [id])
+  company   String
+  title     String
+  startDate DateTime
+  endDate   DateTime?
+  isCurrent Boolean   @default(false)
+  location  String?
+  bullets   String[]
+}
+
+model Education {
+  id           String    @id @default(cuid())
+  profileId    String
+  profile      UserProfile @relation(fields: [profileId], references: [id])
+  school       String
+  degree       String
+  fieldOfStudy String
+  startDate    DateTime
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
+}
+
+model SkillCategory {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   UserProfile @relation(fields: [profileId], references: [id])
+  name      String
+  skills    String[]
+}
