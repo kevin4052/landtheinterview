@@ -3,7 +3,22 @@
 import { useState } from "react";
 import { ResumePreview } from "@/app/components/ResumePreview";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
-import { resumeToText } from "@/lib/utils/resumeToText";
+
+function toPlainText(resume: ResumeJSON): string {
+  const lines: string[] = [resume.name, ...resume.contact, ""];
+  if (resume.summary) lines.push(resume.summary, "");
+  for (const section of resume.sections) {
+    lines.push(section.title.toUpperCase());
+    for (const entry of section.entries) {
+      const parts = [entry.heading, entry.subheading, entry.date].filter(Boolean);
+      if (parts.length) lines.push(parts.join(" | "));
+      if (entry.body) lines.push(entry.body);
+      for (const b of entry.bullets ?? []) lines.push(`- ${b}`);
+    }
+    lines.push("");
+  }
+  return lines.join("\n").trim();
+}
 
 type PdfTemplate = "classic" | "modern" | "two-column";
 
@@ -19,7 +34,7 @@ export function ResumeResultPanel({ resume }: { resume: ResumeJSON }) {
   const [error, setError] = useState("");
 
   function handleCopy() {
-    navigator.clipboard.writeText(resumeToText(resume));
+    navigator.clipboard.writeText(toPlainText(resume));
   }
 
   async function handleDownload(format: "pdf" | "docx") {

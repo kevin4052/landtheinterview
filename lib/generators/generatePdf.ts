@@ -7,55 +7,46 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import React from "react";
-import type { ResumeJSON, Section, Entry } from "@/lib/validators/resumeJson.schema";
-
-const PROFICIENCY_LABELS: Record<string, string> = {
-  native: "Native",
-  fluent: "Fluent",
-  professional: "Professional",
-  conversational: "Conversational",
-  basic: "Basic",
-};
+import type { ResumeJSON, Section, SectionType, Entry } from "@/lib/validators/resumeJson.schema";
+import { extractEntryRenderData } from "@/lib/utils/entryRenderData";
 
 const SIDEBAR_TYPES = new Set(["skills", "languages", "certifications"]);
 
-// ─── Shared helpers ──────────────────────────────────────────────────────────
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function EntryRows(entry: Entry, sectionType: string, styles: any): React.ReactElement[] {
+function EntryRows(entry: Entry, sectionType: SectionType, styles: any): React.ReactElement[] {
+  const data = extractEntryRenderData(entry, sectionType);
   const rows: React.ReactElement[] = [];
 
-  if (sectionType === "languages") {
+  if (data.kind === "language") {
     rows.push(
       React.createElement(
         View,
         { key: "lang", style: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 } },
-        React.createElement(Text, { style: styles.line }, entry.heading ?? ""),
-        entry.level
-          ? React.createElement(Text, { style: styles.contact }, PROFICIENCY_LABELS[entry.level] ?? entry.level)
+        React.createElement(Text, { style: styles.line }, data.label),
+        data.proficiency
+          ? React.createElement(Text, { style: styles.contact }, data.proficiency)
           : null
       )
     );
     return rows;
   }
 
-  if (sectionType === "skills") {
-    const content = entry.body ?? entry.bullets?.join(", ") ?? "";
+  if (data.kind === "skill") {
     rows.push(
       React.createElement(
         View,
         { key: "skill", style: { flexDirection: "row", marginBottom: 2, flexWrap: "wrap" } },
-        entry.heading
-          ? React.createElement(Text, { style: styles.bold }, `${entry.heading}: `)
+        data.label
+          ? React.createElement(Text, { style: styles.bold }, `${data.label}: `)
           : null,
-        React.createElement(Text, { style: styles.line }, content)
+        React.createElement(Text, { style: styles.line }, data.value)
       )
     );
     return rows;
   }
 
   // Default: experience / education / projects / certifications / other
-  const hasHeader = entry.heading || entry.subheading || entry.date;
+  const hasHeader = data.heading || data.subheading || data.date;
   if (hasHeader) {
     rows.push(
       React.createElement(
@@ -64,36 +55,34 @@ function EntryRows(entry: Entry, sectionType: string, styles: any): React.ReactE
         React.createElement(
           View,
           { style: { flex: 1 } },
-          entry.heading
-            ? React.createElement(Text, { style: styles.bold }, entry.heading)
+          data.heading
+            ? React.createElement(Text, { style: styles.bold }, data.heading)
             : null,
-          entry.subheading
-            ? React.createElement(Text, { style: styles.line }, entry.subheading)
+          data.subheading
+            ? React.createElement(Text, { style: styles.line }, data.subheading)
             : null
         ),
-        entry.date
-          ? React.createElement(Text, { style: styles.contact }, entry.date)
+        data.date
+          ? React.createElement(Text, { style: styles.contact }, data.date)
           : null
       )
     );
   }
 
-  if (entry.body) {
-    rows.push(React.createElement(Text, { key: "body", style: styles.line }, entry.body));
+  if (data.body) {
+    rows.push(React.createElement(Text, { key: "body", style: styles.line }, data.body));
   }
 
-  if (entry.bullets) {
-    entry.bullets.forEach((bullet, i) => {
-      rows.push(
-        React.createElement(
-          View,
-          { key: `b${i}`, style: styles.bullet },
-          React.createElement(Text, { style: styles.bulletDot }, "\u2022  "),
-          React.createElement(Text, { style: styles.bulletText }, bullet)
-        )
-      );
-    });
-  }
+  data.bullets.forEach((bullet, i) => {
+    rows.push(
+      React.createElement(
+        View,
+        { key: `b${i}`, style: styles.bullet },
+        React.createElement(Text, { style: styles.bulletDot }, "•  "),
+        React.createElement(Text, { style: styles.bulletText }, bullet)
+      )
+    );
+  });
 
   return rows;
 }
@@ -324,7 +313,6 @@ export async function generateTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> 
     React.createElement(
       Page,
       { size: "LETTER" as const, style: styles.page },
-      // Sidebar
       React.createElement(
         View,
         { style: styles.sidebar },
@@ -338,7 +326,6 @@ export async function generateTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> 
         ),
         ...renderSections(sidebarSections, styles)
       ),
-      // Main column
       React.createElement(
         View,
         { style: styles.main },

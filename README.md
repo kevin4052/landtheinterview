@@ -1,18 +1,26 @@
 # Land the Interview
 
-A web app that takes your resume and a job posting, then uses AI to produce a tailored resume optimized for that specific role — streamed in real time.
+A web app that tailors a user's resume to a specific job posting using AI, drawing on their persistent career profile.
 
 ## What it does
 
-Paste your resume and a job posting. Click **Tailor My Resume**. The app rewrites your resume to match the role, incorporating relevant keywords, reordering experience by relevance, and strengthening bullet points — without fabricating anything. The tailored resume streams back token-by-token as it's generated.
+Users build a **User Profile** (work experience, education, skills) during onboarding. On the dashboard, they paste a **Job Posting**. The app serializes their profile into a **Resume** text, passes it to Claude with the job posting in a single call, and returns a **Tailored Resume** as structured JSON. The result renders as a styled preview and is downloadable as PDF or DOCX in three layout templates.
+
+Every Tailor operation is recorded as a **Tailor Log** entry visible in the dashboard history.
 
 ## Tech stack
 
-- **Next.js 16** (App Router)
-- **Claude claude-opus-4-7** via the Anthropic SDK — adaptive thinking enabled, system prompt cached
-- **Prisma 7** + **PostgreSQL** — every tailor operation is logged to a `TailoredResume` record
-- **Tailwind CSS 4**
-- **Zod 4** — request validation
+| Concern | Tool |
+|---------|------|
+| Framework | Next.js 16 (App Router) |
+| Auth | Clerk |
+| AI | Claude claude-opus-4-7 via Anthropic SDK — adaptive thinking, prompt caching |
+| Database | Prisma 7 + PostgreSQL |
+| Validation | Zod 4 |
+| Styling | Tailwind CSS 4 |
+| PDF export | `@react-pdf/renderer` |
+| DOCX export | `docx` |
+| Tests | Vitest |
 
 ## Getting started
 
@@ -22,11 +30,13 @@ Paste your resume and a job posting. Click **Tailor My Resume**. The app rewrite
 npm install
 ```
 
-2. Set up environment variables — copy `.env.local` and fill in:
+2. Set up environment variables — copy `.env.local.example` and fill in:
 
 ```
 DATABASE_URL=postgresql://...
 ANTHROPIC_API_KEY=sk-ant-...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
 ```
 
 3. Push the database schema:
@@ -41,26 +51,69 @@ npx prisma db push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — it redirects to `/upload`.
+Open [http://localhost:3000](http://localhost:3000). Unauthenticated users see the landing page. After signing up via Clerk, users are routed through a 4-step onboarding form before reaching the dashboard.
 
 ## Architecture
 
-The core operation is a **Tailor**: raw resume text + raw job posting text → streaming tailored resume, logged to the DB on completion. There are no intermediate parse steps; Claude handles raw text directly in a single call (see [ADR 0001](docs/adr/0001-direct-tailor-no-parse-intermediates.md)).
+Domain vocabulary is in [`CONTEXT.md`](CONTEXT.md). Key architectural decisions are recorded in [`docs/adr/`](docs/adr/).
 
-The tailored resume streams inline on the upload page rather than navigating to a separate results route (see [ADR 0002](docs/adr/0002-stream-into-upload-page.md)).
+### Module layout
 
 ```
-/upload          — input form + streaming output (Phase 1 entry point)
-lib/ai/          — tailorResume() streaming wrapper
-lib/db/          — Prisma client singleton
-lib/validators/  — Zod schema for /api/tailor request body
-prisma/          — TailoredResume schema
+lib/
+├── ai/
+│   └── tailorResume.ts          — Anthropic SDK call; returns validated TailorOutput
+├── db/
+│   ├── prisma.ts                — Prisma client singleton
+│   ├── profile.ts               — User Profile CRUD (FullProfile type exported here)
+│   └── tailor-log.ts            — Tailor Log queries: create, paginated list, detail, title update
+├── tailor/
+│   └── runTailor.ts             — Core Tailor operation: Profile → serialize → AI → TailorOutput
+├── serializers/
+│   └── profileSerializer.ts     — serializeProfileToResumeText: FullProfile → plain-text Resume
+├── validators/
+│   ├── resumeJson.schema.ts     — ResumeJSON Zod schema; source of truth for all consumers
+│   ├── tailor.schema.ts         — TailorRequest input schema
+│   └── tailorOutput.schema.ts   — TailorOutput schema (resume + jobTitle + companyName)
+├── generators/
+│   ├── generatePdf.ts           — Classic, Modern, Two-Column PDF templates (react-pdf)
+│   └── generateDocx.ts          — Classic, Modern, Two-Column DOCX templates (docx)
+├── utils/
+│   ├── entryRenderData.ts       — extractEntryRenderData: Entry + SectionType → tagged union
+│   ├── assembleTailoredResumeTitle.ts
+│   └── date.ts
+└── proxy/
+    └── onboarding-guard.ts      — needsOnboardingRedirect pure function (wired in proxy.ts)
 ```
 
-## Phase 2 roadmap
+### Key flows
 
-- **Auth** — user accounts so tailoring history is tied to an identity
-- **Resume history** — dashboard listing past tailor operations
-- **`/results/[id]` route** — shareable deep-link to a specific tailored resume
-- **Parse intermediates (optional)** — structured JSON extraction of resume + job posting before tailoring, if raw-text quality proves insufficient with real usage data
-- **Resume file upload** — accept PDF/DOCX in addition to pasted text
+**Tailor operation** (`POST /api/tailor`):
+1. Auth check (Clerk)
+2. Fetch `FullProfile` via `lib/db/profile`
+3. `runTailor(profile, jobText)` — serializes profile, calls AI, validates output
+4. Return `ResumeJSON` to client immediately
+5. Fire-and-forget: persist `TailorLog` via `lib/db/tailor-log`
+
+**Export** (`POST /api/download`):
+- Client sends `{ resume: ResumeJSON, format, template }`
+- `generateClassicPdf` / `generateModernPdf` / `generateTwoColumnPdf` consume `ResumeJSON` directly via `extractEntryRenderData`
+- `generateDocx` does the same for DOCX — no text serialization round-trip
+
+**Onboarding guard** (`proxy.ts`):
+- `clerkMiddleware` checks profile completeness for all `/dashboard` routes
+- Incomplete users are redirected to `/onboarding` before any dashboard page renders
+
+### ResumeJSON
+
+`ResumeJSONSchema` in `lib/validators/resumeJson.schema.ts` is the single contract between the AI output and all downstream consumers: `ResumePreview`, the three PDF generators, and the three DOCX generators. `extractEntryRenderData` in `lib/utils/entryRenderData.ts` is the shared rendering decision layer — classifies each entry as `language`, `skill`, or `default` — used by all generators and the preview component.
+
+See [ADR-0004](docs/adr/0004-resume-json-structured-output.md) for why this schema exists and [ADR-0005](docs/adr/0005-user-profile-as-resume-source.md) for why file upload was removed.
+
+## Running tests
+
+```bash
+npx vitest run
+```
+
+Tests cover: `ResumeJSON` schema validation, `TailorOutput` schema, profile serializer, title assembly, onboarding guard, and PDF generator structure.

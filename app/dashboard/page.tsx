@@ -1,8 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TailorPanel } from "@/app/components/TailorPanel";
+import { getRecentTailorLogs } from "@/lib/db/tailor-log";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -12,12 +12,7 @@ export default async function DashboardPage() {
   let recentResumes: { id: string; title: string | null; createdAt: Date }[] = [];
 
   try {
-    recentResumes = await prisma.tailoredResume.findMany({
-      where: { clerkUserId: userId },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      select: { id: true, title: true, createdAt: true },
-    });
+    recentResumes = await getRecentTailorLogs(userId, 5);
   } catch (err) {
     console.error("[dashboard] failed to load recent resumes", err);
   }
@@ -63,7 +58,6 @@ export default async function DashboardPage() {
                       <p className="text-xs text-neutral-500 mt-0.5">{date}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      {/* Reserved for future status badge */}
                       <span className="inline-block h-5 w-16 rounded-full border border-dashed border-neutral-200" aria-hidden="true" />
                       <span className="text-xs text-neutral-400">View →</span>
                     </div>

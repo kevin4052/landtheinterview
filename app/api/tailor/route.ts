@@ -1,11 +1,10 @@
 import { after } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db/prisma";
-import { tailorResume } from "@/lib/ai/tailorResume";
+import { runTailor } from "@/lib/tailor/runTailor";
+import { createTailorLog } from "@/lib/db/tailor-log";
 import { TailorRequestSchema } from "@/lib/validators/tailor.schema";
 import { assembleTailoredResumeTitle } from "@/lib/utils/assembleTailoredResumeTitle";
 import { getProfileByClerkId } from "@/lib/db/profile";
-import { serializeProfileToResumeText } from "@/lib/serializers/profileSerializer";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -37,25 +36,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const { jobText } = parsed.data;
-  const resumeText = serializeProfileToResumeText(profile);
-
   try {
-    const tailorOutput = await tailorResume(resumeText, jobText);
-    const { resume: resumeJson, jobTitle, companyName } = tailorOutput;
+    const { resumeJson, resumeText, jobTitle, companyName } = await runTailor(
+      profile,
+      parsed.data.jobText
+    );
 
     after(async () => {
       try {
         const createdAt = new Date();
         const title = assembleTailoredResumeTitle(jobTitle, companyName, createdAt);
-        await prisma.tailoredResume.create({
-          data: {
-            clerkUserId: userId,
-            resumeText,
-            jobText,
-            outputText: JSON.stringify(resumeJson),
-            title,
-          },
+        await createTailorLog(userId, {
+          resumeText,
+          jobText: parsed.data.jobText,
+          outputText: JSON.stringify(resumeJson),
+          title,
         });
       } catch (err) {
         console.error("[tailor] DB write failed:", err);

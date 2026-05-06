@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ResumeJSONSchema } from "@/lib/validators/resumeJson.schema";
-import { resumeToText } from "@/lib/utils/resumeToText";
 
 const DownloadRequestSchema = z.object({
   resume: ResumeJSONSchema,
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
   try {
     if (format === "docx") {
       const { generateDocx } = await import("@/lib/generators/generateDocx");
-      const buffer = await generateDocx(resumeToText(resume));
+      const buffer = await generateDocx(resume, template);
       return new Response(new Uint8Array(buffer), {
         headers: {
           "Content-Type":

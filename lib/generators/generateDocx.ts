@@ -3,118 +3,265 @@ import {
   Packer,
   Paragraph,
   TextRun,
-  HeadingLevel,
   AlignmentType,
   BorderStyle,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  TabStopType,
+  ShadingType,
   convertInchesToTwip,
 } from "docx";
+import type { ResumeJSON, Entry, SectionType } from "@/lib/validators/resumeJson.schema";
+import { extractEntryRenderData } from "@/lib/utils/entryRenderData";
 
-function parseResumeLines(text: string) {
-  return text.split("\n");
-}
+const SIDEBAR_TYPES = new Set(["skills", "languages", "certifications"]);
 
-function isAllCaps(line: string) {
-  const stripped = line.replace(/[^a-zA-Z]/g, "");
-  return stripped.length > 2 && stripped === stripped.toUpperCase();
-}
+// Right-margin tab stop position (twips, letter page with standard margins)
+const RIGHT_TAB = 9026;
 
-function isSectionHeader(line: string) {
-  const trimmed = line.trim();
-  return (
-    isAllCaps(trimmed) ||
-    /^#{1,3}\s/.test(trimmed) ||
-    /^[A-Z][A-Za-z\s]+:?\s*$/.test(trimmed)
-  );
-}
+type DocxConfig = {
+  font: string;
+  bodySize: number;
+  nameSize: number;
+  accentColor: string;
+};
 
-function buildParagraph(line: string): Paragraph {
-  const trimmed = line.trim();
+const CLASSIC: DocxConfig = {
+  font: "Calibri",
+  bodySize: 20,
+  nameSize: 32,
+  accentColor: "000000",
+};
 
-  if (!trimmed) {
-    return new Paragraph({ text: "", spacing: { after: 60 } });
-  }
+const MODERN: DocxConfig = {
+  font: "Calibri",
+  bodySize: 20,
+  nameSize: 32,
+  accentColor: "2563EB",
+};
 
-  if (isSectionHeader(trimmed)) {
-    const text = trimmed.replace(/^#{1,3}\s/, "");
-    return new Paragraph({
-      children: [
-        new TextRun({
-          text: text.toUpperCase(),
-          bold: true,
-          size: 22,
-          font: "Calibri",
-        }),
-      ],
-      heading: HeadingLevel.HEADING_2,
-      spacing: { before: 240, after: 80 },
-      border: {
-        bottom: {
-          color: "000000",
-          space: 1,
-          style: BorderStyle.SINGLE,
-          size: 6,
-        },
-      },
-    });
-  }
+const TWO_COLUMN: DocxConfig = {
+  font: "Calibri",
+  bodySize: 18,
+  nameSize: 28,
+  accentColor: "000000",
+};
 
-  if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
-    return new Paragraph({
-      children: [
-        new TextRun({ text: trimmed.slice(2), size: 20, font: "Calibri" }),
-      ],
-      bullet: { level: 0 },
-      spacing: { after: 60 },
-      indent: { left: convertInchesToTwip(0.25) },
-    });
-  }
-
+function sectionHeader(title: string, cfg: DocxConfig): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text: trimmed, size: 20, font: "Calibri" })],
-    spacing: { after: 60 },
+    children: [
+      new TextRun({
+        text: title.toUpperCase(),
+        bold: true,
+        size: cfg.bodySize + 2,
+        font: cfg.font,
+        color: cfg.accentColor,
+      }),
+    ],
+    spacing: { before: 200, after: 60 },
+    border: {
+      bottom: {
+        color: cfg.accentColor,
+        space: 1,
+        style: BorderStyle.SINGLE,
+        size: 6,
+      },
+    },
   });
 }
 
-export async function generateDocx(resumeText: string): Promise<Buffer> {
-  const lines = parseResumeLines(resumeText);
-  const firstNonEmpty = lines.findIndex((l) => l.trim());
-  const nameLines: string[] = [];
-  const bodyLines: string[] = [];
+function entryParagraphs(entry: Entry, sectionType: SectionType, cfg: DocxConfig): Paragraph[] {
+  const data = extractEntryRenderData(entry, sectionType);
 
-  // First non-empty line(s) treated as name/contact header
-  let headerDone = false;
-  let blankAfterHeader = false;
-  for (const line of lines) {
-    if (!headerDone) {
-      if (line.trim()) {
-        nameLines.push(line.trim());
-      } else if (nameLines.length > 0) {
-        blankAfterHeader = true;
-        headerDone = true;
-      }
-    } else {
-      bodyLines.push(line);
-    }
+  if (data.kind === "language") {
+    return [
+      new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: RIGHT_TAB }],
+        children: [
+          new TextRun({ text: data.label, size: cfg.bodySize, font: cfg.font }),
+          ...(data.proficiency
+            ? [new TextRun({ text: `\t${data.proficiency}`, size: cfg.bodySize, font: cfg.font, color: "666666" })]
+            : []),
+        ],
+        spacing: { after: 40 },
+      }),
+    ];
   }
-  if (!headerDone) bodyLines.push(...nameLines.splice(1));
 
-  const headerParagraphs = nameLines.map(
-    (name, i) =>
+  if (data.kind === "skill") {
+    return [
       new Paragraph({
         children: [
-          new TextRun({
-            text: name,
-            bold: i === 0,
-            size: i === 0 ? 32 : 20,
-            font: "Calibri",
+          ...(data.label
+            ? [new TextRun({ text: `${data.label}: `, bold: true, size: cfg.bodySize, font: cfg.font })]
+            : []),
+          new TextRun({ text: data.value, size: cfg.bodySize, font: cfg.font }),
+        ],
+        spacing: { after: 40 },
+      }),
+    ];
+  }
+
+  const paragraphs: Paragraph[] = [];
+
+  if (data.heading || data.subheading || data.date) {
+    paragraphs.push(
+      new Paragraph({
+        tabStops: data.date ? [{ type: TabStopType.RIGHT, position: RIGHT_TAB }] : [],
+        children: [
+          ...(data.heading
+            ? [new TextRun({ text: data.heading, bold: true, size: cfg.bodySize, font: cfg.font })]
+            : []),
+          ...(data.subheading
+            ? [new TextRun({ text: `  ${data.subheading}`, size: cfg.bodySize, font: cfg.font, color: "555555" })]
+            : []),
+          ...(data.date
+            ? [new TextRun({ text: `\t${data.date}`, size: cfg.bodySize - 2, font: cfg.font, color: "888888" })]
+            : []),
+        ],
+        spacing: { after: 20 },
+      })
+    );
+  }
+
+  if (data.body) {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: data.body, size: cfg.bodySize, font: cfg.font })],
+        spacing: { after: 20 },
+      })
+    );
+  }
+
+  for (const bullet of data.bullets) {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: bullet, size: cfg.bodySize, font: cfg.font })],
+        bullet: { level: 0 },
+        spacing: { after: 40 },
+        indent: { left: convertInchesToTwip(0.25) },
+      })
+    );
+  }
+
+  return paragraphs;
+}
+
+function headerParagraphs(resume: ResumeJSON, cfg: DocxConfig, centered = true): Paragraph[] {
+  return [
+    new Paragraph({
+      children: [new TextRun({ text: resume.name, bold: true, size: cfg.nameSize, font: cfg.font })],
+      alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+      spacing: { after: 60 },
+    }),
+    ...resume.contact.map(
+      (c) =>
+        new Paragraph({
+          children: [new TextRun({ text: c, size: cfg.bodySize - 2, font: cfg.font, color: "555555" })],
+          alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+          spacing: { after: 40 },
+        })
+    ),
+  ];
+}
+
+function sectionParagraphs(resume: ResumeJSON, cfg: DocxConfig, filter?: (type: string) => boolean): Paragraph[] {
+  const sections = filter ? resume.sections.filter((s) => filter(s.type)) : resume.sections;
+  return sections.flatMap((section) => [
+    sectionHeader(section.title, cfg),
+    ...section.entries.flatMap((entry) => entryParagraphs(entry, section.type, cfg)),
+  ]);
+}
+
+function buildFlatDocument(resume: ResumeJSON, cfg: DocxConfig): Paragraph[] {
+  return [
+    ...headerParagraphs(resume, cfg),
+    ...(resume.summary
+      ? [
+          new Paragraph({
+            children: [new TextRun({ text: resume.summary, size: cfg.bodySize, font: cfg.font, color: "444444" })],
+            spacing: { after: 120 },
+          }),
+        ]
+      : []),
+    ...sectionParagraphs(resume, cfg),
+  ];
+}
+
+function buildTwoColumnTable(resume: ResumeJSON): Table {
+  const sidebarParagraphs: Paragraph[] = [
+    ...headerParagraphs(resume, TWO_COLUMN, false),
+    ...sectionParagraphs(resume, TWO_COLUMN, (t) => SIDEBAR_TYPES.has(t)),
+  ];
+
+  const mainParagraphs: Paragraph[] = [
+    ...(resume.summary
+      ? [
+          new Paragraph({
+            children: [new TextRun({ text: resume.summary, size: TWO_COLUMN.bodySize, font: TWO_COLUMN.font, color: "444444" })],
+            spacing: { after: 120 },
+          }),
+        ]
+      : []),
+    ...sectionParagraphs(resume, TWO_COLUMN, (t) => !SIDEBAR_TYPES.has(t)),
+  ];
+
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: noBorder,
+      bottom: noBorder,
+      left: noBorder,
+      right: noBorder,
+      insideHorizontal: noBorder,
+      insideVertical: noBorder,
+    },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 30, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, color: "auto", fill: "F4F4F5" },
+            borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder },
+            margins: {
+              top: convertInchesToTwip(0.5),
+              bottom: convertInchesToTwip(0.5),
+              left: convertInchesToTwip(0.2),
+              right: convertInchesToTwip(0.15),
+            },
+            children: sidebarParagraphs,
+          }),
+          new TableCell({
+            width: { size: 70, type: WidthType.PERCENTAGE },
+            borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder },
+            margins: {
+              top: convertInchesToTwip(0.5),
+              bottom: convertInchesToTwip(0.5),
+              left: convertInchesToTwip(0.2),
+              right: convertInchesToTwip(0.5),
+            },
+            children: mainParagraphs,
           }),
         ],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: i === 0 ? 60 : 40 },
-      })
-  );
+      }),
+    ],
+  });
+}
 
-  const bodyParagraphs = bodyLines.map(buildParagraph);
+export async function generateDocx(
+  resume: ResumeJSON,
+  template: "classic" | "modern" | "two-column"
+): Promise<Buffer> {
+  const isTwoColumn = template === "two-column";
+  const cfg = template === "modern" ? MODERN : CLASSIC;
+
+  const children = isTwoColumn
+    ? [buildTwoColumnTable(resume)]
+    : buildFlatDocument(resume, cfg);
 
   const doc = new Document({
     sections: [
@@ -122,14 +269,14 @@ export async function generateDocx(resumeText: string): Promise<Buffer> {
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(0.75),
-              bottom: convertInchesToTwip(0.75),
-              left: convertInchesToTwip(1),
-              right: convertInchesToTwip(1),
+              top: convertInchesToTwip(isTwoColumn ? 0 : 0.75),
+              bottom: convertInchesToTwip(isTwoColumn ? 0 : 0.75),
+              left: convertInchesToTwip(isTwoColumn ? 0 : 1),
+              right: convertInchesToTwip(isTwoColumn ? 0 : 1),
             },
           },
         },
-        children: [...headerParagraphs, ...bodyParagraphs],
+        children,
       },
     ],
   });

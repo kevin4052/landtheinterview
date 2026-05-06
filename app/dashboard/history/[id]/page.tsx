@@ -1,9 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ResumeResultPanel } from "@/app/components/ResumeResultPanel";
 import { ResumeTitleEditor } from "@/app/components/ResumeTitleEditor";
+import { getTailorLogById } from "@/lib/db/tailor-log";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
 
 export default async function ResumeDetailPage({
@@ -14,27 +14,18 @@ export default async function ResumeDetailPage({
   const { userId } = await auth();
   const { id } = await params;
 
-  const resume = await prisma.tailoredResume.findFirst({
-    where: { id, clerkUserId: userId },
-    select: {
-      inputFilename: true,
-      title: true,
-      outputText: true,
-      createdAt: true,
-    },
-  });
-
-  if (!resume) notFound();
+  const log = await getTailorLogById(userId!, id);
+  if (!log) notFound();
 
   let resumeJson: ResumeJSON;
   try {
-    resumeJson = JSON.parse(resume.outputText) as ResumeJSON;
+    resumeJson = JSON.parse(log.outputText) as ResumeJSON;
   } catch {
     notFound();
   }
 
-  const resolvedTitle = resume.title ?? resume.inputFilename ?? "Pasted resume";
-  const date = new Date(resume.createdAt).toLocaleDateString("en-US", {
+  const resolvedTitle = log.title ?? log.inputFilename ?? "Pasted resume";
+  const date = new Date(log.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

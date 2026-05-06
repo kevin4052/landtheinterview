@@ -1,35 +1,28 @@
 import type { ResumeJSON, Entry, SectionType } from "@/lib/validators/resumeJson.schema";
-
-const PROFICIENCY_LABELS: Record<string, string> = {
-  native: "Native",
-  fluent: "Fluent",
-  professional: "Professional",
-  conversational: "Conversational",
-  basic: "Basic",
-};
+import { extractEntryRenderData } from "@/lib/utils/entryRenderData";
 
 function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
-  if (type === "skills") {
+  const data = extractEntryRenderData(entry, type);
+
+  if (data.kind === "skill") {
     return (
       <div className="mb-1 text-sm text-zinc-700 dark:text-zinc-300">
-        {entry.heading && (
+        {data.label && (
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
-            {entry.heading}:{" "}
+            {data.label}:{" "}
           </span>
         )}
-        {entry.body ?? entry.bullets?.join(", ")}
+        {data.value}
       </div>
     );
   }
 
-  if (type === "languages") {
+  if (data.kind === "language") {
     return (
       <div className="flex justify-between items-baseline mb-1 text-sm">
-        <span className="text-zinc-900 dark:text-zinc-100">{entry.heading}</span>
-        {entry.level && (
-          <span className="text-zinc-500 dark:text-zinc-400">
-            {PROFICIENCY_LABELS[entry.level] ?? entry.level}
-          </span>
+        <span className="text-zinc-900 dark:text-zinc-100">{data.label}</span>
+        {data.proficiency && (
+          <span className="text-zinc-500 dark:text-zinc-400">{data.proficiency}</span>
         )}
       </div>
     );
@@ -39,31 +32,29 @@ function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
     <div className="mb-3">
       <div className="flex justify-between items-baseline gap-2 flex-wrap">
         <div>
-          {entry.heading && (
+          {data.heading && (
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              {entry.heading}
+              {data.heading}
             </span>
           )}
-          {entry.subheading && (
+          {data.subheading && (
             <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1.5">
-              {entry.subheading}
+              {data.subheading}
             </span>
           )}
         </div>
-        {entry.date && (
+        {data.date && (
           <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
-            {entry.date}
+            {data.date}
           </span>
         )}
       </div>
-      {entry.body && (
-        <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-0.5">
-          {entry.body}
-        </p>
+      {data.body && (
+        <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-0.5">{data.body}</p>
       )}
-      {entry.bullets && entry.bullets.length > 0 && (
+      {data.bullets.length > 0 && (
         <ul className="mt-1 space-y-0.5">
-          {entry.bullets.map((b, i) => (
+          {data.bullets.map((b, i) => (
             <li
               key={i}
               className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300"

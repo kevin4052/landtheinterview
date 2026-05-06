@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db/prisma";
 import { z } from "zod";
+import { updateTailorLogTitle } from "@/lib/db/tailor-log";
 
 const PatchBodySchema = z.object({
   title: z.string().min(1),
@@ -25,24 +25,14 @@ export async function PATCH(
     return Response.json({ error: "title is required" }, { status: 400 });
   }
 
-  const record = await prisma.tailoredResume.findUnique({
-    where: { id },
-    select: { clerkUserId: true },
-  });
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  if (!record) {
+  const updated = await updateTailorLogTitle(userId, id, parsed.data.title);
+  if (!updated) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
-
-  if (!record.clerkUserId || record.clerkUserId !== userId) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const updated = await prisma.tailoredResume.update({
-    where: { id },
-    data: { title: parsed.data.title },
-    select: { id: true, title: true },
-  });
 
   return Response.json(updated);
 }
