@@ -38,7 +38,7 @@ _Avoid_: Generate, optimize, process
 
 **Tailor Log**:
 A persisted DB record of a completed Tailor operation. Stores the serialized Resume text, Job Posting text, and Tailored Resume text for the user's history and internal audit.
-_Avoid_: Record, result
+_Avoid_: Record, history, result
 
 ## Relationships
 
