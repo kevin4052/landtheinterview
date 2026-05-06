@@ -1,12 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import {
-  createProfile,
-  createWorkExperience,
-  createSkillCategory,
-  createEducation,
-  profileIsComplete,
-} from "@/lib/db/profile";
+import { prisma } from "@/lib/db/prisma";
+import { profileIsComplete } from "@/lib/db/profile";
 
 const WorkExpSchema = z.object({
   company: z.string().min(1),
@@ -68,43 +63,50 @@ export async function POST(request: Request) {
   const { name, email, workExperience, skillCategories, education } = parsed.data;
 
   try {
-    await createProfile(userId, { name, email });
+    await prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.create({
+        data: { clerkUserId: userId, name, email },
+      });
 
-    await Promise.all(
-      workExperience.map((exp) =>
-        createWorkExperience(userId, {
-          company: exp.company,
-          title: exp.title,
-          startDate: parseMonthDate(exp.startDate),
-          endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
-          isCurrent: exp.isCurrent,
-          location: exp.location || null,
-          bullets: exp.bullets.filter(Boolean),
-        })
-      )
-    );
-
-    await Promise.all(
-      skillCategories.map((cat) =>
-        createSkillCategory(userId, {
-          name: cat.categoryName,
-          skills: cat.skills,
-        })
-      )
-    );
-
-    await Promise.all(
-      education.map((edu) =>
-        createEducation(userId, {
-          school: edu.school,
-          degree: edu.degree,
-          fieldOfStudy: edu.fieldOfStudy,
-          startDate: parseMonthDate(edu.startDate),
-          endDate: edu.endDate ? parseMonthDate(edu.endDate) : null,
-          isCurrent: edu.isCurrent ?? false,
-        })
-      )
-    );
+      await Promise.all([
+        ...workExperience.map((exp) =>
+          tx.workExperience.create({
+            data: {
+              profileId: profile.id,
+              company: exp.company,
+              title: exp.title,
+              startDate: parseMonthDate(exp.startDate),
+              endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
+              isCurrent: exp.isCurrent,
+              location: exp.location || null,
+              bullets: exp.bullets.filter(Boolean),
+            },
+          })
+        ),
+        ...skillCategories.map((cat) =>
+          tx.skillCategory.create({
+            data: {
+              profileId: profile.id,
+              name: cat.categoryName,
+              skills: cat.skills,
+            },
+          })
+        ),
+        ...education.map((edu) =>
+          tx.education.create({
+            data: {
+              profileId: profile.id,
+              school: edu.school,
+              degree: edu.degree,
+              fieldOfStudy: edu.fieldOfStudy,
+              startDate: parseMonthDate(edu.startDate),
+              endDate: edu.endDate ? parseMonthDate(edu.endDate) : null,
+              isCurrent: edu.isCurrent ?? false,
+            },
+          })
+        ),
+      ]);
+    });
 
     return Response.json({ ok: true });
   } catch (err) {
