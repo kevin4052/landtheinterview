@@ -19,11 +19,11 @@
     "@vercel/analytics": "^2.0.1",
     "docx": "^9.6.1",
     "mammoth": "^1.12.0",
-    "next": "16.2.4",
+    "next": "16.2.6",
     "pg": "^8.20.0",
     "prisma": "^7.8.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
     "unpdf": "^1.6.2",
     "zod": "^4.4.1"
   },
@@ -32,14 +32,18 @@
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.20.0",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "^4.1.5",
     "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "16.2.6",
     "pdf-parse": "^1.1.4",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
   }
 }

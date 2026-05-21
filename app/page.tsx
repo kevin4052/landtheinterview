@@ -28,7 +28,7 @@ export default function LandingPage() {
           </Show>
           <Show when="signed-in">
             <Link
-              href="/dashboard/history"
+              href="/dashboard"
               className="bg-primary text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors cursor-pointer"
             >
               Go to Dashboard
