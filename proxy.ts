@@ -14,7 +14,7 @@ export default clerkMiddleware(async (auth, request) => {
   if (pathname.startsWith("/dashboard")) {
     const { userId } = await auth();
     if (userId) {
-      const complete = await profileIsComplete(userId);
+      const complete = await profileIsComplete();
       if (needsOnboardingRedirect(pathname, userId, complete)) {
         return NextResponse.redirect(new URL("/onboarding", request.url), 307);
       }

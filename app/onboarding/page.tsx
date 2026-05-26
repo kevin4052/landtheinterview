@@ -7,7 +7,7 @@ export default async function OnboardingPage() {
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  const complete = await profileIsComplete(userId);
+  const complete = await profileIsComplete();
   if (complete) redirect("/dashboard");
 
   const user = await currentUser();

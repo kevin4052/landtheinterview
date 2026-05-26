@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
-import { getProfileByClerkId } from "@/lib/db/profile";
+import { getProfile } from "@/lib/db/profile";
 import { PersonalInfoSection } from "./PersonalInfoSection";
 import { WorkExperienceSection } from "./WorkExperienceSection";
 import { EducationSection } from "./EducationSection";
@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   const { userId } = await auth();
   if (!userId) notFound();
 
-  const profile = await getProfileByClerkId(userId);
+  const profile = await getProfile();
   if (!profile) notFound();
 
   const sortedWorkExperience = [...profile.workExperience].sort(

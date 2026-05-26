@@ -17,7 +17,7 @@ export default async function HistoryPage({
   let dbError = false;
 
   try {
-    const result = await getTailorLogPage(userId!, page);
+    const result = await getTailorLogPage(page);
     logs = result.logs;
     totalPages = result.totalPages;
   } catch {

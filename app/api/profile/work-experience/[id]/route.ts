@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { workExperience } from "@/lib/db/schema";
 import { updateWorkExperience, deleteWorkExperience } from "@/lib/db/profile";
 import { parseMonthDate } from "@/lib/utils/date";
 
@@ -14,11 +16,14 @@ const WorkExpUpdateSchema = z.object({
   bullets: z.array(z.string().min(1)).optional(),
 });
 
-async function verifyOwnership(id: string, userId: string) {
-  return prisma.workExperience.findFirst({
-    where: { id, profile: { clerkUserId: userId } },
-    select: { id: true },
-  });
+async function verifyOwnership(id: string) {
+  const db = await getDb();
+  const [entry] = await db
+    .select({ id: workExperience.id })
+    .from(workExperience)
+    .where(eq(workExperience.id, id))
+    .limit(1);
+  return entry ?? null;
 }
 
 export async function PATCH(
@@ -30,7 +35,7 @@ export async function PATCH(
 
   const { id } = await params;
 
-  const entry = await verifyOwnership(id, userId);
+  const entry = await verifyOwnership(id);
   if (!entry) return Response.json({ error: "Not found" }, { status: 404 });
 
   let body: unknown;
@@ -70,7 +75,7 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const entry = await verifyOwnership(id, userId);
+  const entry = await verifyOwnership(id);
   if (!entry) return Response.json({ error: "Not found" }, { status: 404 });
 
   try {

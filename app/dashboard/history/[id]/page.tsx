@@ -14,7 +14,7 @@ export default async function ResumeDetailPage({
   const { userId } = await auth();
   const { id } = await params;
 
-  const log = await getTailorLogById(userId!, id);
+  const log = await getTailorLogById(id);
   if (!log) notFound();
 
   let resumeJson: ResumeJSON;

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const entry = await createSkillCategory(userId, parsed.data);
+    const entry = await createSkillCategory(parsed.data);
     return Response.json(entry);
   } catch (err) {
     console.error("[skill-categories] create failed:", err);

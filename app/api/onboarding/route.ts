@@ -1,7 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { sql } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
 import { profileIsComplete } from "@/lib/db/profile";
+import {
+  userProfiles,
+  workExperience as workExperienceTable,
+  education as educationTable,
+  skillCategories as skillCategoriesTable,
+} from "@/lib/db/schema";
 import { parseMonthDate } from "@/lib/utils/date";
 
 const WorkExpSchema = z.object({
@@ -41,7 +48,7 @@ export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const alreadyComplete = await profileIsComplete(userId);
+  const alreadyComplete = await profileIsComplete();
   if (alreadyComplete) {
     return Response.json({ error: "Profile already complete" }, { status: 409 });
   }
@@ -58,49 +65,60 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const { name, email, workExperience, skillCategories, education } = parsed.data;
+  const {
+    name,
+    email,
+    workExperience: workExp,
+    skillCategories: skillCats,
+    education: edu,
+  } = parsed.data;
 
   try {
-    await prisma.$transaction(async (tx) => {
-      const profile = await tx.userProfile.create({
-        data: { clerkUserId: userId, name, email },
-      });
+    const db = await getDb();
+
+    await db.transaction(async (tx) => {
+      // tenant_id resolved via Neon Auth (auth.user_id() reads the Clerk JWT)
+      const [profile] = await tx
+        .insert(userProfiles)
+        .values({
+          tenantId: sql`(SELECT id FROM tenants WHERE clerk_user_id = auth.user_id())`,
+          name,
+          email,
+        })
+        .returning({ id: userProfiles.id, tenantId: userProfiles.tenantId });
 
       await Promise.all([
-        ...workExperience.map((exp) =>
-          tx.workExperience.create({
-            data: {
-              profileId: profile.id,
-              company: exp.company,
-              title: exp.title,
-              startDate: parseMonthDate(exp.startDate),
-              endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
-              isCurrent: exp.isCurrent,
-              location: exp.location || null,
-              bullets: exp.bullets,
-            },
+        ...workExp.map((exp) =>
+          tx.insert(workExperienceTable).values({
+            tenantId: profile.tenantId,
+            profileId: profile.id,
+            company: exp.company,
+            title: exp.title,
+            startDate: parseMonthDate(exp.startDate),
+            endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
+            isCurrent: exp.isCurrent,
+            location: exp.location || null,
+            bullets: exp.bullets,
           })
         ),
-        ...skillCategories.map((cat) =>
-          tx.skillCategory.create({
-            data: {
-              profileId: profile.id,
-              name: cat.categoryName,
-              skills: cat.skills,
-            },
+        ...skillCats.map((cat) =>
+          tx.insert(skillCategoriesTable).values({
+            tenantId: profile.tenantId,
+            profileId: profile.id,
+            name: cat.categoryName,
+            skills: cat.skills,
           })
         ),
-        ...education.map((edu) =>
-          tx.education.create({
-            data: {
-              profileId: profile.id,
-              school: edu.school,
-              degree: edu.degree,
-              fieldOfStudy: edu.fieldOfStudy,
-              startDate: parseMonthDate(edu.startDate),
-              endDate: edu.endDate ? parseMonthDate(edu.endDate) : null,
-              isCurrent: edu.isCurrent ?? false,
-            },
+        ...edu.map((e) =>
+          tx.insert(educationTable).values({
+            tenantId: profile.tenantId,
+            profileId: profile.id,
+            school: e.school,
+            degree: e.degree,
+            fieldOfStudy: e.fieldOfStudy,
+            startDate: parseMonthDate(e.startDate),
+            endDate: e.endDate ? parseMonthDate(e.endDate) : null,
+            isCurrent: e.isCurrent ?? false,
           })
         ),
       ]);

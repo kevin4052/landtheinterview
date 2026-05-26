@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const { school, degree, fieldOfStudy, startDate, endDate, isCurrent } = parsed.data;
 
   try {
-    const entry = await createEducation(userId, {
+    const entry = await createEducation({
       school,
       degree,
       fieldOfStudy,

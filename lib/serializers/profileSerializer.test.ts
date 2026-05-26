@@ -5,7 +5,7 @@ import type { FullProfile } from "@/lib/db/profile";
 function makeProfile(overrides: Partial<FullProfile> = {}): FullProfile {
   return {
     id: "p1",
-    clerkUserId: "user_123",
+    tenantId: "tenant_123",
     name: "Jane Doe",
     email: "jane@example.com",
     createdAt: new Date("2024-01-01"),
@@ -20,6 +20,7 @@ function makeProfile(overrides: Partial<FullProfile> = {}): FullProfile {
 function makeJob(overrides: Partial<FullProfile["workExperience"][number]> = {}): FullProfile["workExperience"][number] {
   return {
     id: "w1",
+    tenantId: "tenant_123",
     profileId: "p1",
     company: "Acme Corp",
     title: "Software Engineer",
@@ -35,6 +36,7 @@ function makeJob(overrides: Partial<FullProfile["workExperience"][number]> = {})
 function makeEdu(overrides: Partial<FullProfile["education"][number]> = {}): FullProfile["education"][number] {
   return {
     id: "e1",
+    tenantId: "tenant_123",
     profileId: "p1",
     school: "State University",
     degree: "B.S.",
@@ -49,6 +51,7 @@ function makeEdu(overrides: Partial<FullProfile["education"][number]> = {}): Ful
 function makeSkill(overrides: Partial<FullProfile["skillCategories"][number]> = {}): FullProfile["skillCategories"][number] {
   return {
     id: "s1",
+    tenantId: "tenant_123",
     profileId: "p1",
     name: "Languages",
     skills: ["TypeScript", "Python"],

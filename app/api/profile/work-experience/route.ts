@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const { company, title, startDate, endDate, isCurrent, location, bullets } = parsed.data;
 
   try {
-    const entry = await createWorkExperience(userId, {
+    const entry = await createWorkExperience({
       company,
       title,
       startDate: parseMonthDate(startDate),

@@ -28,7 +28,7 @@ export async function GET(
     return Response.json({ error: "format must be pdf or docx" }, { status: 400 });
   }
 
-  const log = await getTailorLogById(userId, id);
+  const log = await getTailorLogById(id);
   if (!log) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }

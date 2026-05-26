@@ -1,7 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { TailorPanel } from "@/app/components/TailorPanel";
+import { SubscriptionStatusWidget } from "@/app/components/SubscriptionStatusWidget";
 import { getRecentTailorLogs } from "@/lib/db/tailor-log";
 
 export default async function DashboardPage() {
@@ -12,13 +14,16 @@ export default async function DashboardPage() {
   let recentResumes: { id: string; title: string | null; createdAt: Date }[] = [];
 
   try {
-    recentResumes = await getRecentTailorLogs(userId, 5);
+    recentResumes = await getRecentTailorLogs(5);
   } catch (err) {
     console.error("[dashboard] failed to load recent resumes", err);
   }
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-12">
+      <Suspense fallback={null}>
+        <SubscriptionStatusWidget />
+      </Suspense>
       <TailorPanel />
 
       <section>
