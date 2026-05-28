@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 memory/
+app/(dashboard)/prototype/
 
 # debug
 npm-debug.log*

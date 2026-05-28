@@ -1,15 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import Link from "next/link";
 import { ResumeResultPanel } from "@/app/components/ResumeResultPanel";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
 
-export function TailorPanel() {
+export type TailorPanelHandle = {
+  focusTextarea: () => void;
+};
+
+export const TailorPanel = forwardRef<TailorPanelHandle>(
+  function TailorPanel(_, ref) {
   const [jobText, setJobText] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "exhausted">("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<ResumeJSON | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusTextarea() {
+      textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      textareaRef.current?.focus();
+    },
+  }));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,6 +65,7 @@ export function TailorPanel() {
       <h2 className="text-lg font-semibold text-foreground mb-4">Tailor My Resume</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <textarea
+          ref={textareaRef}
           value={jobText}
           onChange={(e) => setJobText(e.target.value)}
           placeholder="Paste a job posting here…"
@@ -97,4 +111,4 @@ export function TailorPanel() {
       )}
     </section>
   );
-}
+});

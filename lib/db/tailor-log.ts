@@ -101,6 +101,12 @@ export async function getTailorLogById(
   return entry ?? null;
 }
 
+export async function getTailorLogCount(): Promise<number> {
+  const db = await getDb();
+  const [{ total }] = await db.select({ total: count() }).from(tailoredResumes);
+  return Number(total);
+}
+
 export async function updateTailorLogTitle(
   id: string,
   title: string
