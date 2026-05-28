@@ -1,15 +1,30 @@
 import {
   pgTable,
   pgEnum,
+  pgRole,
   uuid,
   text,
   timestamp,
   integer,
   boolean,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { crudPolicy, authenticatedRole, authUid } from "drizzle-orm/neon";
+import { relations, sql } from "drizzle-orm";
 
 export const planEnum = pgEnum("plan", ["free", "mid", "pro"]);
+
+// Neon's "authenticated" role is NOLOGIN, so the serverless driver connects as
+// the login-capable app_authenticated role (created in migration 0002). It
+// already exists in the database; .existing() keeps drizzle-kit from emitting
+// CREATE/DROP for it while still including it in generated policy role lists.
+const appAuthenticatedRole = pgRole("app_authenticated").existing();
+const rlsRoles = [authenticatedRole, appAuthenticatedRole];
+
+// Row belongs to the calling user when its tenant_id resolves to the tenant
+// owned by the JWT's Clerk user. Used as the RLS predicate on every child table.
+const belongsToTenant = (tenantId: AnyPgColumn) =>
+  sql`(select ${tenantId} = (select ${tenants.id} from ${tenants} where ${tenants.clerkUserId} = auth.user_id()))`;
 
 export const tenants = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -20,7 +35,13 @@ export const tenants = pgTable("tenants", {
   lifetimeOpsUsed: integer("lifetime_ops_used").notNull().default(0),
   monthlyOpsUsed: integer("monthly_ops_used").notNull().default(0),
   currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: authUid(t.clerkUserId),
+    modify: authUid(t.clerkUserId),
+  }),
+]);
 
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -35,7 +56,13 @@ export const userProfiles = pgTable("user_profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
 
 export const workExperience = pgTable("work_experience", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -52,7 +79,13 @@ export const workExperience = pgTable("work_experience", {
   isCurrent: boolean("is_current").notNull().default(false),
   location: text("location"),
   bullets: text("bullets").array().notNull().default([]),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
 
 export const education = pgTable("education", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -68,7 +101,13 @@ export const education = pgTable("education", {
   startDate: timestamp("start_date", { withTimezone: true }).notNull(),
   endDate: timestamp("end_date", { withTimezone: true }),
   isCurrent: boolean("is_current").notNull().default(false),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
 
 export const skillCategories = pgTable("skill_categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -80,7 +119,13 @@ export const skillCategories = pgTable("skill_categories", {
     .references(() => userProfiles.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   skills: text("skills").array().notNull().default([]),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
 
 export const tailoredResumes = pgTable("tailored_resumes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -97,7 +142,13 @@ export const tailoredResumes = pgTable("tailored_resumes", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
 
 export const tenantsRelations = relations(tenants, ({ one }) => ({
   profile: one(userProfiles, {

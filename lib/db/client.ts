@@ -6,11 +6,23 @@ import * as schema from "./schema";
 
 export type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-export async function getDb(): Promise<Db> {
-  const { getToken } = await auth();
-  const authToken = await getToken();
-  const sql = neon(process.env.DATABASE_AUTHENTICATED_URL!, {
-    authToken: authToken ?? undefined,
-  });
+export async function getDb(authToken?: string | null): Promise<Db> {
+  if (authToken === undefined) {
+    const { getToken } = await auth();
+    authToken = await getToken({ template: "jwt-neon_rls" });
+  }
+
+  if (!authToken) {
+    throw new Error(
+      "Missing Clerk JWT for Neon RLS. Verify the Clerk JWT template named 'jwt-neon_rls' exists and the current request is authenticated."
+    );
+  }
+
+  const databaseUrl = process.env.DATABASE_AUTHENTICATED_URL;
+  if (!databaseUrl) {
+    throw new Error("Missing DATABASE_AUTHENTICATED_URL environment variable.");
+  }
+
+  const sql = neon(databaseUrl, { authToken });
   return drizzle(sql, { schema });
 }

@@ -1,7 +1,9 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
+import { getAdminDb } from "@/lib/db/admin";
 import {
+  tenants,
   userProfiles,
   workExperience,
   education,
@@ -32,12 +34,41 @@ export async function getProfile(): Promise<FullProfile | null> {
   return profile ?? null;
 }
 
-export async function profileIsComplete(): Promise<boolean> {
-  const db = await getDb();
-  const profile = await db.query.userProfiles.findFirst({
-    with: { workExperience: { limit: 1 } },
-  });
-  return profile != null && profile.workExperience.length > 0;
+// A profile is "complete" once it has at least one work experience. The
+// clerkUserId filter is only needed for the admin connection; the RLS
+// connection is already scoped to the caller's tenant.
+async function hasCompleteProfile(
+  db: ReturnType<typeof getAdminDb>,
+  clerkUserId?: string
+): Promise<boolean> {
+  const rows = await db
+    .select({ profileId: userProfiles.id })
+    .from(tenants)
+    .innerJoin(userProfiles, eq(userProfiles.tenantId, tenants.id))
+    .innerJoin(workExperience, eq(workExperience.profileId, userProfiles.id))
+    .where(clerkUserId ? eq(tenants.clerkUserId, clerkUserId) : undefined)
+    .limit(1);
+  return rows.length > 0;
+}
+
+export async function profileIsComplete(authToken?: string | null): Promise<boolean> {
+  return hasCompleteProfile(await getDb(authToken));
+}
+
+export async function profileIsCompleteAdmin(clerkUserId: string): Promise<boolean> {
+  return hasCompleteProfile(getAdminDb(), clerkUserId);
+}
+
+export async function ensureTenant(clerkUserId: string): Promise<void> {
+  await getAdminDb()
+    .insert(tenants)
+    .values({
+      clerkUserId,
+      plan: "free",
+      lifetimeOpsUsed: 0,
+      monthlyOpsUsed: 0,
+    })
+    .onConflictDoNothing({ target: tenants.clerkUserId });
 }
 
 export async function createProfile(data: { name: string; email: string }) {

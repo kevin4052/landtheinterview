@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1779843677299,
+      "tag": "0000_damp_wendell_vaughn",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779888691044,
+      "tag": "0001_curly_tarot",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779916019607,
+      "tag": "0002_app_authenticated_role",
+      "breakpoints": true
+    }
+  ]
+}
