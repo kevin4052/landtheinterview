@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ResumeJSONSchema } from "@/lib/validators/resumeJson.schema";
+import { generateResumeFile } from "@/lib/generators/resumeFile";
 
 const DownloadRequestSchema = z.object({
   resume: ResumeJSONSchema,
@@ -26,33 +27,11 @@ export async function POST(request: Request) {
   const { resume, format, template } = parsed.data;
 
   try {
-    if (format === "docx") {
-      const { generateDocx } = await import("@/lib/generators/generateDocx");
-      const buffer = await generateDocx(resume, template);
-      return new Response(new Uint8Array(buffer), {
-        headers: {
-          "Content-Type":
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "Content-Disposition": 'attachment; filename="tailored-resume.docx"',
-        },
-      });
-    }
-
-    const { generateClassicPdf, generateModernPdf, generateTwoColumnPdf } =
-      await import("@/lib/generators/generatePdf");
-
-    const generator =
-      template === "modern"
-        ? generateModernPdf
-        : template === "two-column"
-          ? generateTwoColumnPdf
-          : generateClassicPdf;
-
-    const buffer = await generator(resume);
-    return new Response(new Uint8Array(buffer), {
+    const file = await generateResumeFile(resume, { format, template });
+    return new Response(file.body, {
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="tailored-resume.pdf"',
+        "Content-Type": file.contentType,
+        "Content-Disposition": `attachment; filename="${file.filename}"`,
       },
     });
   } catch (err) {

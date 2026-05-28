@@ -20,6 +20,10 @@ _Avoid_: degree, school record
 A named group of skills within a User Profile (e.g. "Languages", "Frameworks").
 _Avoid_: skill set, skill group
 
+**Profile Section**:
+The umbrella term for the repeatable, independently-editable parts of a User Profile — a Work Experience, an Education, or a Skill Category. Every Profile Section shares one lifecycle (create, update, delete) and the same Tenant-scoped ownership; kinds differ only in their fields. CRUD on any kind flows through a single seam keyed by the kind.
+_Avoid_: section, entry, sub-resource, record
+
 **Resume**:
 Serialized plain text produced from a User Profile, passed as input to a Tailor operation.
 _Avoid_: CV, document, file, upload

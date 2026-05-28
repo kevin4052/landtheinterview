@@ -8,6 +8,7 @@ import {
 } from "@react-pdf/renderer";
 import React from "react";
 import type { ResumeJSON, Section, SectionType, Entry } from "@/lib/validators/resumeJson.schema";
+import type { ResumeTemplate } from "@/lib/generators/resumeFile";
 import { extractEntryRenderData } from "@/lib/utils/entryRenderData";
 
 const SIDEBAR_TYPES = new Set(["skills", "languages", "certifications"]);
@@ -121,9 +122,8 @@ function buildClassicStyles() {
   });
 }
 
-export async function generateClassicPdf(resume: ResumeJSON): Promise<Buffer> {
-  const styles = buildClassicStyles();
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function renderFlatPdf(resume: ResumeJSON, styles: any, summaryStyle: any): Promise<Buffer> {
   const doc = React.createElement(
     Document,
     null,
@@ -139,20 +139,9 @@ export async function generateClassicPdf(resume: ResumeJSON): Promise<Buffer> {
         )
       ),
       resume.summary
-        ? React.createElement(Text, { style: { ...styles.line, marginBottom: 8 } }, resume.summary)
+        ? React.createElement(Text, { style: summaryStyle }, resume.summary)
         : null,
-      ...resume.sections.flatMap((section) => [
-        React.createElement(
-          Text,
-          { key: `s${section.title}`, style: styles.sectionHeader },
-          section.title.toUpperCase()
-        ),
-        ...section.entries.flatMap((entry, j) =>
-          EntryRows(entry, section.type, styles).map((el, k) =>
-            React.cloneElement(el, { key: `${section.title}-${j}-${k}` })
-          )
-        ),
-      ])
+      ...renderSections(resume.sections, styles)
     )
   );
 
@@ -194,44 +183,6 @@ function buildModernStyles() {
     bulletDot: { width: 10, fontSize: 10, color: MODERN_ACCENT },
     bulletText: { flex: 1, fontSize: 10 },
   });
-}
-
-export async function generateModernPdf(resume: ResumeJSON): Promise<Buffer> {
-  const styles = buildModernStyles();
-
-  const doc = React.createElement(
-    Document,
-    null,
-    React.createElement(
-      Page,
-      { size: "LETTER" as const, style: styles.page },
-      React.createElement(
-        View,
-        { style: styles.headerBlock },
-        React.createElement(Text, { style: styles.name }, resume.name),
-        ...resume.contact.map((c, i) =>
-          React.createElement(Text, { key: i, style: styles.contact }, c)
-        )
-      ),
-      resume.summary
-        ? React.createElement(Text, { style: { ...styles.line, marginBottom: 10, color: "#444444" } }, resume.summary)
-        : null,
-      ...resume.sections.flatMap((section) => [
-        React.createElement(
-          Text,
-          { key: `s${section.title}`, style: styles.sectionHeader },
-          section.title.toUpperCase()
-        ),
-        ...section.entries.flatMap((entry, j) =>
-          EntryRows(entry, section.type, styles).map((el, k) =>
-            React.cloneElement(el, { key: `${section.title}-${j}-${k}` })
-          )
-        ),
-      ])
-    )
-  );
-
-  return Buffer.from(await renderToBuffer(doc));
 }
 
 // ─── Two-Column ───────────────────────────────────────────────────────────────
@@ -301,7 +252,7 @@ function renderSections(sections: Section[], styles: any): React.ReactElement[] 
   ]);
 }
 
-export async function generateTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> {
+async function renderTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> {
   const styles = buildTwoColumnStyles();
 
   const sidebarSections = resume.sections.filter((s) => SIDEBAR_TYPES.has(s.type));
@@ -338,4 +289,21 @@ export async function generateTwoColumnPdf(resume: ResumeJSON): Promise<Buffer> 
   );
 
   return Buffer.from(await renderToBuffer(doc));
+}
+
+// ─── Dispatch ─────────────────────────────────────────────────────────────────
+
+export async function generatePdf(
+  resume: ResumeJSON,
+  template: ResumeTemplate
+): Promise<Buffer> {
+  if (template === "two-column") return renderTwoColumnPdf(resume);
+
+  const styles = template === "modern" ? buildModernStyles() : buildClassicStyles();
+  const summaryStyle =
+    template === "modern"
+      ? { ...styles.line, marginBottom: 10, color: "#444444" }
+      : { ...styles.line, marginBottom: 8 };
+
+  return renderFlatPdf(resume, styles, summaryStyle);
 }

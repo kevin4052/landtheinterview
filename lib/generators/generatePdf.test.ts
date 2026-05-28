@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import pdfParse from "pdf-parse";
-import {
-  generateClassicPdf,
-  generateModernPdf,
-  generateTwoColumnPdf,
-} from "./generatePdf";
+import { generatePdf } from "./generatePdf";
 import type { ResumeJSON } from "@/lib/validators/resumeJson.schema";
 
 const FIXTURE: ResumeJSON = {
@@ -65,45 +61,45 @@ function isValidPdf(buffer: Buffer): boolean {
   return buffer.slice(0, 4).toString() === "%PDF";
 }
 
-describe("generateClassicPdf", () => {
+describe("generatePdf — classic", () => {
   it("returns a valid PDF buffer", async () => {
-    const buffer = await generateClassicPdf(FIXTURE);
+    const buffer = await generatePdf(FIXTURE, "classic");
     expect(buffer).toBeInstanceOf(Buffer);
     expect(isValidPdf(buffer)).toBe(true);
   });
 
   it("contains the name", async () => {
-    const text = await extractText(await generateClassicPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "classic"));
     expect(text).toContain("Alex Rivera");
   });
 
   it("contains section titles", async () => {
-    const text = await extractText(await generateClassicPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "classic"));
     expect(text).toContain("EXPERIENCE");
     expect(text).toContain("EDUCATION");
     expect(text).toContain("SKILLS");
   });
 
   it("contains bullet content", async () => {
-    const text = await extractText(await generateClassicPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "classic"));
     expect(text).toContain("Scaled platform to 10M users");
   });
 });
 
-describe("generateModernPdf", () => {
+describe("generatePdf — modern", () => {
   it("returns a valid PDF buffer", async () => {
-    const buffer = await generateModernPdf(FIXTURE);
+    const buffer = await generatePdf(FIXTURE, "modern");
     expect(buffer).toBeInstanceOf(Buffer);
     expect(isValidPdf(buffer)).toBe(true);
   });
 
   it("contains the name", async () => {
-    const text = await extractText(await generateModernPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "modern"));
     expect(text).toContain("Alex Rivera");
   });
 
   it("contains section titles in correct order", async () => {
-    const text = await extractText(await generateModernPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "modern"));
     const expIdx = text.indexOf("EXPERIENCE");
     const eduIdx = text.indexOf("EDUCATION");
     const skillsIdx = text.indexOf("SKILLS");
@@ -113,34 +109,34 @@ describe("generateModernPdf", () => {
   });
 
   it("contains bullet content", async () => {
-    const text = await extractText(await generateModernPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "modern"));
     expect(text).toContain("Reduced p99 latency by 60%");
   });
 });
 
-describe("generateTwoColumnPdf", () => {
+describe("generatePdf — two-column", () => {
   it("returns a valid PDF buffer", async () => {
-    const buffer = await generateTwoColumnPdf(FIXTURE);
+    const buffer = await generatePdf(FIXTURE, "two-column");
     expect(buffer).toBeInstanceOf(Buffer);
     expect(isValidPdf(buffer)).toBe(true);
   });
 
   it("routes sidebar section types to output", async () => {
-    const text = await extractText(await generateTwoColumnPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "two-column"));
     expect(text).toContain("SKILLS");
     expect(text).toContain("LANGUAGES");
     expect(text).toContain("CERTIFICATIONS");
   });
 
   it("routes main section types to output", async () => {
-    const text = await extractText(await generateTwoColumnPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "two-column"));
     expect(text).toContain("EXPERIENCE");
     expect(text).toContain("EDUCATION");
   });
 
   it("sidebar sections appear before main sections in two-column layout", async () => {
     // In two-column, sidebar (skills/languages/certs) is the left column rendered first
-    const text = await extractText(await generateTwoColumnPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "two-column"));
     const skillsIdx = text.indexOf("SKILLS");
     const expIdx = text.indexOf("EXPERIENCE");
     expect(skillsIdx).toBeGreaterThan(-1);
@@ -152,7 +148,7 @@ describe("generateTwoColumnPdf", () => {
   });
 
   it("contains bullet content from main column", async () => {
-    const text = await extractText(await generateTwoColumnPdf(FIXTURE));
+    const text = await extractText(await generatePdf(FIXTURE, "two-column"));
     expect(text).toContain("Scaled platform to 10M users");
   });
 });
