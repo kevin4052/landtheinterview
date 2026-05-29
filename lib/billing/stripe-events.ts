@@ -18,7 +18,8 @@ export async function handleCheckoutCompleted(
   const customerId = typeof session.customer === "string" ? session.customer : null;
   const subscriptionId =
     typeof session.subscription === "string" ? session.subscription : null;
-  const plan = (session.metadata?.plan ?? null) as "mid" | "pro" | null;
+  const raw = session.metadata?.plan;
+  const plan: "mid" | "pro" | null = raw === "mid" || raw === "pro" ? raw : null;
 
   if (!tenantId || !customerId || !subscriptionId || !plan) return;
 
@@ -39,10 +40,14 @@ export async function handleSubscriptionUpdated(
   const item = subscription.items.data[0];
   const priceId = item?.price?.id ?? null;
   const plan = priceId ? planFromPriceId(priceId) : null;
-  // In Stripe v22+, current_period_end lives on the SubscriptionItem, not Subscription
-  const periodEnd = new Date((item?.current_period_end ?? 0) * 1000);
-
   if (!plan) return;
+
+  // In Stripe v22+, current_period_end lives on the SubscriptionItem, not Subscription
+  if (!item?.current_period_end) {
+    console.error("[stripe-events] subscription.updated missing current_period_end", { customerId });
+    return;
+  }
+  const periodEnd = new Date(item.current_period_end * 1000);
 
   await getAdminDb()
     .update(tenants)

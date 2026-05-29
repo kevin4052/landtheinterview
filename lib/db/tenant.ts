@@ -34,10 +34,11 @@ export async function getTenantUsage(): Promise<TenantUsage> {
     };
   }
 
-  // mid: same inline reset check as consumeAllowance (ADR-0008)
+  // mid: mirror the NULL-safe reset check in consumeAllowance (ADR-0008)
+  // NULL currentPeriodEnd means the period was never set; treat as expired (full allowance).
   const now = new Date();
   const effectiveUsed =
-    tenant.currentPeriodEnd && now > tenant.currentPeriodEnd
+    !tenant.currentPeriodEnd || now > tenant.currentPeriodEnd
       ? 0
       : tenant.monthlyOpsUsed;
   return {

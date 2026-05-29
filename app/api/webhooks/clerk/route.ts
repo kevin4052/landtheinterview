@@ -41,12 +41,10 @@ export async function POST(request: Request) {
 
   if (event.type === "user.created") {
     const { id: clerkUserId } = (event as ClerkUserCreatedEvent).data;
-    await getAdminDb().insert(tenants).values({
-      clerkUserId,
-      plan: "free",
-      lifetimeOpsUsed: 0,
-      monthlyOpsUsed: 0,
-    });
+    await getAdminDb()
+      .insert(tenants)
+      .values({ clerkUserId, plan: "free", lifetimeOpsUsed: 0, monthlyOpsUsed: 0 })
+      .onConflictDoNothing(); // idempotent: Clerk retries must not 500 on duplicate
   }
 
   return Response.json({ ok: true });

@@ -28,8 +28,11 @@ export async function POST(request: Request) {
 
   const priceId =
     parsed.data.plan === "mid"
-      ? process.env.STRIPE_MID_PRICE_ID!
-      : process.env.STRIPE_PRO_PRICE_ID!;
+      ? process.env.STRIPE_MID_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+  if (!priceId) {
+    return Response.json({ error: "Pricing not configured" }, { status: 500 });
+  }
 
   const origin = new URL(request.url).origin;
 
