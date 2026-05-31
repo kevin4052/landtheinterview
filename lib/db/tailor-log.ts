@@ -1,5 +1,7 @@
 import "server-only";
-import { prisma } from "@/lib/db/prisma";
+import { desc, eq, count, sql } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { tailoredResumes } from "@/lib/db/schema";
 
 const PAGE_SIZE = 10;
 
@@ -31,7 +33,6 @@ export type PaginatedTailorLogs = {
 };
 
 export async function createTailorLog(
-  clerkUserId: string,
   data: {
     resumeText: string;
     jobText: string;
@@ -39,74 +40,82 @@ export async function createTailorLog(
     title: string;
   }
 ): Promise<void> {
-  await prisma.tailoredResume.create({ data: { clerkUserId, ...data } });
+  const db = await getDb();
+  await db.insert(tailoredResumes).values({
+    tenantId: sql`(SELECT id FROM tenants WHERE clerk_user_id = auth.user_id())`,
+    ...data,
+  });
 }
 
 export async function getRecentTailorLogs(
-  clerkUserId: string,
   limit: number
 ): Promise<TailorLogSummary[]> {
-  return prisma.tailoredResume.findMany({
-    where: { clerkUserId },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: { id: true, title: true, createdAt: true },
-  });
+  const db = await getDb();
+  return db
+    .select({
+      id: tailoredResumes.id,
+      title: tailoredResumes.title,
+      createdAt: tailoredResumes.createdAt,
+    })
+    .from(tailoredResumes)
+    .orderBy(desc(tailoredResumes.createdAt))
+    .limit(limit);
 }
 
 export async function getTailorLogPage(
-  clerkUserId: string,
   page: number
 ): Promise<PaginatedTailorLogs> {
-  const [logs, total] = await prisma.$transaction([
-    prisma.tailoredResume.findMany({
-      where: { clerkUserId },
-      orderBy: { createdAt: "desc" },
-      take: PAGE_SIZE,
-      skip: (page - 1) * PAGE_SIZE,
-      select: {
-        id: true,
-        title: true,
-        inputFilename: true,
-        outputFormat: true,
-        createdAt: true,
-      },
-    }),
-    prisma.tailoredResume.count({ where: { clerkUserId } }),
+  const db = await getDb();
+  const [logs, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: tailoredResumes.id,
+        title: tailoredResumes.title,
+        inputFilename: tailoredResumes.inputFilename,
+        outputFormat: tailoredResumes.outputFormat,
+        createdAt: tailoredResumes.createdAt,
+      })
+      .from(tailoredResumes)
+      .orderBy(desc(tailoredResumes.createdAt))
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE),
+    db.select({ total: count() }).from(tailoredResumes),
   ]);
-
-  return { logs, total, totalPages: Math.ceil(total / PAGE_SIZE) };
+  return { logs, total: Number(total), totalPages: Math.ceil(Number(total) / PAGE_SIZE) };
 }
 
 export async function getTailorLogById(
-  clerkUserId: string,
   id: string
 ): Promise<TailorLogDetail | null> {
-  return prisma.tailoredResume.findFirst({
-    where: { id, clerkUserId },
-    select: {
-      title: true,
-      inputFilename: true,
-      outputText: true,
-      createdAt: true,
-    },
-  });
+  const db = await getDb();
+  const [entry] = await db
+    .select({
+      title: tailoredResumes.title,
+      inputFilename: tailoredResumes.inputFilename,
+      outputText: tailoredResumes.outputText,
+      createdAt: tailoredResumes.createdAt,
+    })
+    .from(tailoredResumes)
+    .where(eq(tailoredResumes.id, id))
+    .limit(1);
+  return entry ?? null;
+}
+
+export async function getTailorLogCount(): Promise<number> {
+  const db = await getDb();
+  const [{ total }] = await db.select({ total: count() }).from(tailoredResumes);
+  return Number(total);
 }
 
 export async function updateTailorLogTitle(
-  clerkUserId: string,
   id: string,
   title: string
 ): Promise<{ id: string; title: string | null } | null> {
-  const existing = await prisma.tailoredResume.findFirst({
-    where: { id, clerkUserId },
-    select: { id: true },
-  });
-  if (!existing) return null;
-
-  return prisma.tailoredResume.update({
-    where: { id },
-    data: { title },
-    select: { id: true, title: true },
-  });
+  const db = await getDb();
+  const [entry] = await db
+    .update(tailoredResumes)
+    .set({ title })
+    .where(eq(tailoredResumes.id, id))
+    .returning({ id: tailoredResumes.id, title: tailoredResumes.title });
+  return entry ?? null;
 }

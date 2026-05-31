@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { userProfiles } from "@/lib/db/schema";
 
 const UpdateProfileSchema = z.object({
   name: z.string().min(1),
@@ -24,11 +26,13 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const updated = await prisma.userProfile.update({
-      where: { clerkUserId: userId },
-      data: parsed.data,
-      select: { id: true, name: true, email: true },
-    });
+    const db = await getDb();
+    // RLS on user_profiles ensures only the tenant's own profile is updated
+    const [updated] = await db
+      .update(userProfiles)
+      .set(parsed.data)
+      .returning({ id: userProfiles.id, name: userProfiles.name, email: userProfiles.email });
+    if (!updated) return Response.json({ error: "Not found" }, { status: 404 });
     return Response.json(updated);
   } catch (err) {
     console.error("[profile] update failed:", err);

@@ -20,6 +20,10 @@ _Avoid_: degree, school record
 A named group of skills within a User Profile (e.g. "Languages", "Frameworks").
 _Avoid_: skill set, skill group
 
+**Profile Section**:
+The umbrella term for the repeatable, independently-editable parts of a User Profile — a Work Experience, an Education, or a Skill Category. Every Profile Section shares one lifecycle (create, update, delete) and the same Tenant-scoped ownership; kinds differ only in their fields. CRUD on any kind flows through a single seam keyed by the kind.
+_Avoid_: section, entry, sub-resource, record
+
 **Resume**:
 Serialized plain text produced from a User Profile, passed as input to a Tailor operation.
 _Avoid_: CV, document, file, upload
@@ -40,11 +44,27 @@ _Avoid_: Generate, optimize, process
 A persisted DB record of a completed Tailor operation. Stores the serialized Resume text, Job Posting text, and Tailored Resume text for the user's history and internal audit.
 _Avoid_: Record, history, result
 
+## Tenancy & Billing
+
+**Tenant**:
+The isolated unit of data ownership in the system. One Tenant per User, created automatically when a User signs up via Clerk. Identified by a UUID that serves as the row-level security boundary across all tables.
+_Avoid_: Account, organization, workspace
+
+**Subscription Plan**:
+The tier a Tenant is on — Free, Mid, or Pro. Determines the Tenant's Tailor Allowance and billing relationship with Stripe. Free Tenants have no Stripe relationship.
+_Avoid_: Tier, level, package
+
+**Tailor Allowance**:
+The number of Tailor operations a Tenant may perform within their current period. Free: 5 lifetime. Mid: 20 per billing period. Pro: unlimited. Decremented atomically before a Tailor operation runs.
+_Avoid_: Credits, ops, quota, limit
+
 ## Relationships
 
 - A **User Profile** is serialized into a **Resume** text before being passed to a **Tailor** operation
 - A **Tailor** operation takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
 - A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor** operation
+- A **Tenant** owns one **User Profile**, zero or more **Tailor Logs**, and one **Subscription Plan**
+- A **Tailor** operation is only permitted if the Tenant's **Tailor Allowance** is not exhausted
 
 ## Example dialogue
 

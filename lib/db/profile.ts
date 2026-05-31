@@ -1,125 +1,73 @@
 import "server-only";
-import { prisma } from "@/lib/db/prisma";
-import type { Prisma } from "@/generated/client";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { getAdminDb } from "@/lib/db/admin";
+import {
+  tenants,
+  userProfiles,
+  workExperience,
+  education,
+  skillCategories,
+} from "@/lib/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
 
-const profileInclude = {
-  workExperience: true,
-  education: true,
-  skillCategories: true,
-} satisfies Prisma.UserProfileInclude;
+export type WorkExperience = InferSelectModel<typeof workExperience>;
+export type Education = InferSelectModel<typeof education>;
+export type SkillCategory = InferSelectModel<typeof skillCategories>;
 
-export type FullProfile = Prisma.UserProfileGetPayload<{
-  include: typeof profileInclude;
-}>;
+export type FullProfile = InferSelectModel<typeof userProfiles> & {
+  workExperience: WorkExperience[];
+  education: Education[];
+  skillCategories: SkillCategory[];
+};
 
-export async function getProfileByClerkId(
-  clerkUserId: string
-): Promise<FullProfile | null> {
-  return prisma.userProfile.findUnique({
-    where: { clerkUserId },
-    include: profileInclude,
+// RLS on user_profiles filters to the current JWT user automatically.
+export async function getProfile(): Promise<FullProfile | null> {
+  const db = await getDb();
+  const profile = await db.query.userProfiles.findFirst({
+    with: {
+      workExperience: true,
+      education: true,
+      skillCategories: true,
+    },
   });
+  return profile ?? null;
 }
 
-export async function profileIsComplete(
-  clerkUserId: string
+// A profile is "complete" once it has at least one work experience. The
+// clerkUserId filter is only needed for the admin connection; the RLS
+// connection is already scoped to the caller's tenant.
+async function hasCompleteProfile(
+  db: ReturnType<typeof getAdminDb>,
+  clerkUserId?: string
 ): Promise<boolean> {
-  const profile = await prisma.userProfile.findUnique({
-    where: { clerkUserId },
-    include: { workExperience: { take: 1 } },
-  });
-  return profile !== null && profile.workExperience.length > 0;
+  const rows = await db
+    .select({ profileId: userProfiles.id })
+    .from(tenants)
+    .innerJoin(userProfiles, eq(userProfiles.tenantId, tenants.id))
+    .innerJoin(workExperience, eq(workExperience.profileId, userProfiles.id))
+    .where(clerkUserId ? eq(tenants.clerkUserId, clerkUserId) : undefined)
+    .limit(1);
+  return rows.length > 0;
 }
 
-export async function createProfile(
-  clerkUserId: string,
-  data: { name: string; email: string }
-) {
-  return prisma.userProfile.create({
-    data: { clerkUserId, ...data },
-  });
+export async function profileIsComplete(authToken?: string | null): Promise<boolean> {
+  return hasCompleteProfile(await getDb(authToken));
 }
 
-// WorkExperience mutations
-
-export type WorkExperienceCreateData = Omit<
-  Prisma.WorkExperienceCreateInput,
-  "id" | "profile"
->;
-
-export type WorkExperienceUpdateData = Partial<WorkExperienceCreateData>;
-
-export async function createWorkExperience(
-  clerkUserId: string,
-  data: WorkExperienceCreateData
-) {
-  return prisma.workExperience.create({
-    data: { ...data, profile: { connect: { clerkUserId } } },
-  });
+export async function profileIsCompleteAdmin(clerkUserId: string): Promise<boolean> {
+  return hasCompleteProfile(getAdminDb(), clerkUserId);
 }
 
-export async function updateWorkExperience(
-  id: string,
-  data: WorkExperienceUpdateData
-) {
-  return prisma.workExperience.update({ where: { id }, data });
+export async function ensureTenant(clerkUserId: string): Promise<void> {
+  await getAdminDb()
+    .insert(tenants)
+    .values({
+      clerkUserId,
+      plan: "free",
+      lifetimeOpsUsed: 0,
+      monthlyOpsUsed: 0,
+    })
+    .onConflictDoNothing({ target: tenants.clerkUserId });
 }
 
-export async function deleteWorkExperience(id: string) {
-  return prisma.workExperience.delete({ where: { id } });
-}
-
-// Education mutations
-
-export type EducationCreateData = Omit<
-  Prisma.EducationCreateInput,
-  "id" | "profile"
->;
-
-export type EducationUpdateData = Partial<EducationCreateData>;
-
-export async function createEducation(
-  clerkUserId: string,
-  data: EducationCreateData
-) {
-  return prisma.education.create({
-    data: { ...data, profile: { connect: { clerkUserId } } },
-  });
-}
-
-export async function updateEducation(id: string, data: EducationUpdateData) {
-  return prisma.education.update({ where: { id }, data });
-}
-
-export async function deleteEducation(id: string) {
-  return prisma.education.delete({ where: { id } });
-}
-
-// SkillCategory mutations
-
-export type SkillCategoryCreateData = Omit<
-  Prisma.SkillCategoryCreateInput,
-  "id" | "profile"
->;
-
-export type SkillCategoryUpdateData = Partial<SkillCategoryCreateData>;
-
-export async function createSkillCategory(
-  clerkUserId: string,
-  data: SkillCategoryCreateData
-) {
-  return prisma.skillCategory.create({
-    data: { ...data, profile: { connect: { clerkUserId } } },
-  });
-}
-
-export async function updateSkillCategory(
-  id: string,
-  data: SkillCategoryUpdateData
-) {
-  return prisma.skillCategory.update({ where: { id }, data });
-}
-
-export async function deleteSkillCategory(id: string) {
-  return prisma.skillCategory.delete({ where: { id } });
-}

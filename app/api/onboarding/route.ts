@@ -1,14 +1,20 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
-import { profileIsComplete } from "@/lib/db/profile";
+import { sql } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { ensureTenant, profileIsComplete } from "@/lib/db/profile";
 import { parseMonthDate } from "@/lib/utils/date";
+
+const MonthDateString = z
+  .string()
+  .min(1)
+  .refine((s) => !Number.isNaN(parseMonthDate(s).getTime()), "Invalid date");
 
 const WorkExpSchema = z.object({
   company: z.string().min(1),
   title: z.string().min(1),
-  startDate: z.string().min(1),
-  endDate: z.string().optional(),
+  startDate: MonthDateString,
+  endDate: MonthDateString.optional(),
   isCurrent: z.boolean(),
   location: z.string().optional(),
   bullets: z.array(z.string().min(1)),
@@ -23,8 +29,8 @@ const EducationSchema = z.object({
   school: z.string().min(1),
   degree: z.string().min(1),
   fieldOfStudy: z.string().min(1),
-  startDate: z.string().min(1),
-  endDate: z.string().optional(),
+  startDate: MonthDateString,
+  endDate: MonthDateString.optional(),
   isCurrent: z.boolean().optional(),
 });
 
@@ -38,13 +44,8 @@ const OnboardingBodySchema = z.object({
 
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { getToken, userId } = await auth();
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
-
-  const alreadyComplete = await profileIsComplete(userId);
-  if (alreadyComplete) {
-    return Response.json({ error: "Profile already complete" }, { status: 409 });
-  }
 
   let body: unknown;
   try {
@@ -58,53 +59,140 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const { name, email, workExperience, skillCategories, education } = parsed.data;
+  const {
+    name,
+    email,
+    workExperience: workExp,
+    skillCategories: skillCats,
+    education: edu,
+  } = parsed.data;
 
   try {
-    await prisma.$transaction(async (tx) => {
-      const profile = await tx.userProfile.create({
-        data: { clerkUserId: userId, name, email },
-      });
+    const authToken = await getToken({ template: "jwt-neon_rls" });
+    await ensureTenant(userId);
 
-      await Promise.all([
-        ...workExperience.map((exp) =>
-          tx.workExperience.create({
-            data: {
-              profileId: profile.id,
-              company: exp.company,
-              title: exp.title,
-              startDate: parseMonthDate(exp.startDate),
-              endDate: exp.endDate ? parseMonthDate(exp.endDate) : null,
-              isCurrent: exp.isCurrent,
-              location: exp.location || null,
-              bullets: exp.bullets,
-            },
-          })
-        ),
-        ...skillCategories.map((cat) =>
-          tx.skillCategory.create({
-            data: {
-              profileId: profile.id,
-              name: cat.categoryName,
-              skills: cat.skills,
-            },
-          })
-        ),
-        ...education.map((edu) =>
-          tx.education.create({
-            data: {
-              profileId: profile.id,
-              school: edu.school,
-              degree: edu.degree,
-              fieldOfStudy: edu.fieldOfStudy,
-              startDate: parseMonthDate(edu.startDate),
-              endDate: edu.endDate ? parseMonthDate(edu.endDate) : null,
-              isCurrent: edu.isCurrent ?? false,
-            },
-          })
-        ),
-      ]);
-    });
+    const alreadyComplete = await profileIsComplete(authToken);
+    if (alreadyComplete) {
+      return Response.json({ error: "Profile already complete" }, { status: 409 });
+    }
+
+    const db = await getDb(authToken);
+
+    const workExperienceJson = JSON.stringify(
+      workExp.map((exp) => ({
+        company: exp.company,
+        title: exp.title,
+        start_date: parseMonthDate(exp.startDate).toISOString(),
+        end_date: exp.endDate ? parseMonthDate(exp.endDate).toISOString() : null,
+        is_current: exp.isCurrent,
+        location: exp.location || null,
+        bullets: exp.bullets,
+      }))
+    );
+    const skillCategoriesJson = JSON.stringify(
+      skillCats.map((cat) => ({
+        name: cat.categoryName,
+        skills: cat.skills,
+      }))
+    );
+    const educationJson = JSON.stringify(
+      edu.map((e) => ({
+        school: e.school,
+        degree: e.degree,
+        field_of_study: e.fieldOfStudy,
+        start_date: parseMonthDate(e.startDate).toISOString(),
+        end_date: e.endDate ? parseMonthDate(e.endDate).toISOString() : null,
+        is_current: e.isCurrent ?? false,
+      }))
+    );
+
+    await db.execute(sql`
+      WITH tenant AS (
+        SELECT (
+          SELECT id FROM tenants WHERE clerk_user_id = auth.user_id()
+        ) AS id
+      ),
+      inserted_profile AS (
+        INSERT INTO user_profiles (tenant_id, name, email)
+        SELECT id, ${name}, ${email}
+        FROM tenant
+        RETURNING id, tenant_id
+      ),
+      inserted_work_experience AS (
+        INSERT INTO work_experience (
+          tenant_id,
+          profile_id,
+          company,
+          title,
+          start_date,
+          end_date,
+          is_current,
+          location,
+          bullets
+        )
+        SELECT
+          profile.tenant_id,
+          profile.id,
+          item.company,
+          item.title,
+          item.start_date::timestamptz,
+          item.end_date::timestamptz,
+          item.is_current,
+          item.location,
+          ARRAY(SELECT jsonb_array_elements_text(item.bullets))
+        FROM inserted_profile profile
+        CROSS JOIN jsonb_to_recordset(${workExperienceJson}::jsonb) AS item(
+          company text,
+          title text,
+          start_date text,
+          end_date text,
+          is_current boolean,
+          location text,
+          bullets jsonb
+        )
+      ),
+      inserted_skill_categories AS (
+        INSERT INTO skill_categories (tenant_id, profile_id, name, skills)
+        SELECT
+          profile.tenant_id,
+          profile.id,
+          item.name,
+          ARRAY(SELECT jsonb_array_elements_text(item.skills))
+        FROM inserted_profile profile
+        CROSS JOIN jsonb_to_recordset(${skillCategoriesJson}::jsonb) AS item(
+          name text,
+          skills jsonb
+        )
+      )
+      INSERT INTO education (
+        tenant_id,
+        profile_id,
+        school,
+        degree,
+        field_of_study,
+        start_date,
+        end_date,
+        is_current
+      )
+      SELECT
+        profile.tenant_id,
+        profile.id,
+        item.school,
+        item.degree,
+        item.field_of_study,
+        item.start_date::timestamptz,
+        item.end_date::timestamptz,
+        item.is_current
+      FROM inserted_profile profile
+      CROSS JOIN jsonb_to_recordset(${educationJson}::jsonb) AS item(
+        school text,
+        degree text,
+        field_of_study text,
+        start_date text,
+        end_date text,
+        is_current boolean
+      )
+    `);
 
     return Response.json({ ok: true });
   } catch (err) {

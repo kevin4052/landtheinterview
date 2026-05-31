@@ -29,7 +29,7 @@ export async function PATCH(
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const updated = await updateTailorLogTitle(userId, id, parsed.data.title);
+  const updated = await updateTailorLogTitle(id, parsed.data.title);
   if (!updated) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
