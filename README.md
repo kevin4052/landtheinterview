@@ -37,7 +37,7 @@ npm install
 ```
 # Neon — two connection strings for the same DB
 DATABASE_URL=postgresql://...              # admin/superuser role (Clerk webhook, Stripe webhook)
-DATABASE_AUTHENTICATED_URL=postgresql://... # app_authenticated role (all RLS-scoped queries)
+DATABASE_AUTHENTICATED_URL=postgresql://... # authenticator role (all RLS-scoped queries)
 
 ANTHROPIC_API_KEY=sk-ant-...
 
@@ -73,7 +73,7 @@ Domain vocabulary is in [`CONTEXT.md`](CONTEXT.md). Key architectural decisions 
 
 ### Multi-tenancy and RLS
 
-Every database table except `tenants` carries a `tenant_id` column. Each table has a `crudPolicy` that compares `tenant_id` against the Tenant owned by `auth.user_id()` — a function Neon Auth resolves from the Clerk JWT embedded in each connection. The JWT is fetched via the `jwt-neon_rls` Clerk template and forwarded through `DATABASE_AUTHENTICATED_URL`.
+Every database table except `tenants` carries a `tenant_id` column. Each table has a `crudPolicy` that compares `tenant_id` against the Tenant owned by `auth.user_id()` — a function Neon resolves from the Clerk JWT embedded in each connection. The JWT is fetched via the `neon_rls` Clerk template and forwarded through `DATABASE_AUTHENTICATED_URL`.
 
 Two Drizzle clients exist:
 
@@ -81,6 +81,27 @@ Two Drizzle clients exist:
 - **`getAdminDb()` (`lib/db/admin.ts`)** — superuser, singleton, no RLS. Used only by the Clerk `user.created` webhook (tenant provisioning) and Stripe webhook handlers (plan updates).
 
 See [ADR-0006](docs/adr/0006-drizzle-neon-replace-prisma.md) (why Drizzle replaced Prisma) and [ADR-0007](docs/adr/0007-neon-auth-jwt-rls.md) (why JWT-native RLS instead of `SET LOCAL`).
+
+#### Clerk + Neon RLS setup
+
+The RLS chain has three independent pieces that must line up. A mistake in any one surfaces as a misleading `jwk not found` error from Neon — even when the token itself is valid:
+
+1. **Clerk JWT template.** A template named `neon_rls` on each Clerk instance, signed with Clerk's default RS256 keys (do **not** set a custom signing key — that changes the `kid` and the published JWKS won't match). `getDb()` mints a token with `auth().getToken({ template: "neon_rls" })`. The token's `sub` is the Clerk user id, which `auth.user_id()` returns inside Postgres.
+
+2. **Neon Authorize provider.** In the Neon Console (**Settings → RLS / Authorize**), add an authentication provider for each Clerk instance:
+   - **Issuer** — the Clerk Frontend API origin, e.g. `https://<instance>.clerk.accounts.dev` (dev) or your custom domain `https://clerk.<domain>` (prod). **No trailing slash.**
+   - **JWKS URL** — `<issuer>/.well-known/jwks.json`.
+
+   Dev and prod Clerk instances have separate signing keys, so each needs its own provider. Multiple providers coexist on one project; Neon matches a token to a provider by its `iss` claim. If a custom domain wasn't live when the provider was added, delete and re-add it to force a fresh JWKS fetch.
+
+3. **The `authenticator` role.** `DATABASE_AUTHENTICATED_URL` must connect as Neon's **`authenticator`** role — **not** `authenticated`, and not a hand-created role. Neon follows the PostgREST three-role model:
+   - `authenticator` — `LOGIN`, no privileges; the role the connection string authenticates as.
+   - `authenticated` — `NOLOGIN`; the proxy `SET ROLE`s into it after validating the JWT. Every `crudPolicy` rule is `TO "authenticated"`.
+   - `anonymous` — `NOLOGIN`; fallback when no valid JWT is present.
+
+   Neon binds each JWKS provider to specific roles (by default `authenticator`, `authenticated`, `anonymous`), so **JWT validation is keyed by the connecting role**. Connecting as a role outside that set yields `jwk not found`; connecting as `authenticated` directly yields `role "authenticated" is not permitted to log in`.
+
+`getAdminDb()` bypasses all three — it connects as the database owner via `DATABASE_URL` with no JWT and is RLS-exempt.
 
 ### Billing
 

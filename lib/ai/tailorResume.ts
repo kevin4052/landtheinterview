@@ -82,7 +82,7 @@ export async function tailorResume(
   jobText: string
 ): Promise<TailorOutput> {
   const response = await client.messages.create({
-    model: "claude-opus-4-7",
+    model: "claude-opus-4-8",
     max_tokens: 8192,
     thinking: { type: "adaptive" },
     system: [

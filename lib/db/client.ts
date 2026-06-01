@@ -9,12 +9,12 @@ export type Db = ReturnType<typeof drizzle<typeof schema>>;
 export async function getDb(authToken?: string | null): Promise<Db> {
   if (authToken === undefined) {
     const { getToken } = await auth();
-    authToken = await getToken({ template: "jwt-neon_rls" });
+    authToken = await getToken({ template: "neon_rls" });
   }
 
   if (!authToken) {
     throw new Error(
-      "Missing Clerk JWT for Neon RLS. Verify the Clerk JWT template named 'jwt-neon_rls' exists and the current request is authenticated."
+      "Missing Clerk JWT for Neon RLS. Verify the Clerk JWT template named 'neon_rls' exists and the current request is authenticated."
     );
   }
 

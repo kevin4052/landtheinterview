@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   } = parsed.data;
 
   try {
-    const authToken = await getToken({ template: "jwt-neon_rls" });
+    const authToken = await getToken({ template: "neon_rls" });
     await ensureTenant(userId);
 
     const alreadyComplete = await profileIsComplete(authToken);
