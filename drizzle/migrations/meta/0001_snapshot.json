@@ -1,6 +1,6 @@
 {
-  "id": "562c8a3a-deb2-4978-8c9f-58f49d554074",
-  "prevId": "ba357086-2d24-4aa6-8867-740174136d76",
+  "id": "f54ff446-5d64-4c91-8147-89b11892b9a1",
+  "prevId": "1febb4da-e799-42c5-8010-23ea0b263b82",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -97,40 +97,40 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"education\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select \"education\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"education\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))",
           "withCheck": "(select \"education\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"education\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         }
@@ -207,40 +207,40 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"skill_categories\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select \"skill_categories\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"skill_categories\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))",
           "withCheck": "(select \"skill_categories\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"skill_categories\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         }
@@ -334,40 +334,40 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"tailored_resumes\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select \"tailored_resumes\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"tailored_resumes\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))",
           "withCheck": "(select \"tailored_resumes\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"tailored_resumes\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         }
@@ -446,40 +446,40 @@
         }
       },
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select auth.user_id() = \"tenants\".\"clerk_user_id\")"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select auth.user_id() = \"tenants\".\"clerk_user_id\")"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select auth.user_id() = \"tenants\".\"clerk_user_id\")",
           "withCheck": "(select auth.user_id() = \"tenants\".\"clerk_user_id\")"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select auth.user_id() = \"tenants\".\"clerk_user_id\")"
         }
@@ -550,40 +550,40 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"user_profiles\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select \"user_profiles\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"user_profiles\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))",
           "withCheck": "(select \"user_profiles\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"user_profiles\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         }
@@ -691,40 +691,40 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "crud-authenticated-policy-select": {
-          "name": "crud-authenticated-policy-select",
+        "crud-authenticated_backend-policy-select": {
+          "name": "crud-authenticated_backend-policy-select",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"work_experience\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-insert": {
-          "name": "crud-authenticated-policy-insert",
+        "crud-authenticated_backend-policy-insert": {
+          "name": "crud-authenticated_backend-policy-insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "withCheck": "(select \"work_experience\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-update": {
-          "name": "crud-authenticated-policy-update",
+        "crud-authenticated_backend-policy-update": {
+          "name": "crud-authenticated_backend-policy-update",
           "as": "PERMISSIVE",
           "for": "UPDATE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"work_experience\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))",
           "withCheck": "(select \"work_experience\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         },
-        "crud-authenticated-policy-delete": {
-          "name": "crud-authenticated-policy-delete",
+        "crud-authenticated_backend-policy-delete": {
+          "name": "crud-authenticated_backend-policy-delete",
           "as": "PERMISSIVE",
           "for": "DELETE",
           "to": [
-            "authenticated"
+            "authenticated_backend"
           ],
           "using": "(select \"work_experience\".\"tenant_id\" = (select \"tenants\".\"id\" from \"tenants\" where \"tenants\".\"clerk_user_id\" = auth.user_id()))"
         }

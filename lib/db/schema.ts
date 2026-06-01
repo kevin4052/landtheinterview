@@ -1,25 +1,26 @@
 import {
   pgTable,
   pgEnum,
-  pgRole,
   uuid,
   text,
   timestamp,
   integer,
   boolean,
   type AnyPgColumn,
+  pgRole,
 } from "drizzle-orm/pg-core";
-import { crudPolicy, authenticatedRole, authUid } from "drizzle-orm/neon";
+import { crudPolicy, authUid } from "drizzle-orm/neon";
 import { relations, sql } from "drizzle-orm";
 
 export const planEnum = pgEnum("plan", ["free", "mid", "pro"]);
 
-// Neon's "authenticated" role is NOLOGIN, so the serverless driver connects as
-// the login-capable app_authenticated role (created in migration 0002). It
-// already exists in the database; .existing() keeps drizzle-kit from emitting
-// CREATE/DROP for it while still including it in generated policy role lists.
-const appAuthenticatedRole = pgRole("app_authenticated").existing();
-const rlsRoles = [authenticatedRole, appAuthenticatedRole];
+// The serverless driver connects DIRECTLY AS `authenticated_backend` — a
+// passwordless LOGIN role whose credential is the JWKS-validated Clerk JWT.
+// There is no SET ROLE; `current_user` stays `authenticated_backend`, so every
+// policy must target it. See memory/handoff_neon_authenticated_login.md
+// (ADR-0007 documents the old, disproven model and needs rewriting).
+export const backendRole = pgRole('authenticated_backend').existing();
+const rlsRoles = [backendRole];
 
 // Row belongs to the calling user when its tenant_id resolves to the tenant
 // owned by the JWT's Clerk user. Used as the RLS predicate on every child table.
