@@ -7,16 +7,20 @@ import {
   integer,
   boolean,
   type AnyPgColumn,
+  pgRole,
 } from "drizzle-orm/pg-core";
-import { crudPolicy, authenticatedRole, authUid } from "drizzle-orm/neon";
+import { crudPolicy, authUid } from "drizzle-orm/neon";
 import { relations, sql } from "drizzle-orm";
 
 export const planEnum = pgEnum("plan", ["free", "mid", "pro"]);
 
-// The serverless driver connects as the `authenticator` role; Neon's proxy
-// validates the Clerk JWT and SET ROLEs into `authenticated`, which every
-// policy targets. See ADR-0007.
-const rlsRoles = [authenticatedRole];
+// The serverless driver connects DIRECTLY AS `authenticated_backend` — a
+// passwordless LOGIN role whose credential is the JWKS-validated Clerk JWT.
+// There is no SET ROLE; `current_user` stays `authenticated_backend`, so every
+// policy must target it. See memory/handoff_neon_authenticated_login.md
+// (ADR-0007 documents the old, disproven model and needs rewriting).
+export const backendRole = pgRole('authenticated_backend').existing();
+const rlsRoles = [backendRole];
 
 // Row belongs to the calling user when its tenant_id resolves to the tenant
 // owned by the JWT's Clerk user. Used as the RLS predicate on every child table.
