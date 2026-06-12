@@ -6,9 +6,9 @@ function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
 
   if (data.kind === "skill") {
     return (
-      <div className="mb-1 text-sm text-zinc-700 dark:text-zinc-300">
+      <div className="mb-1 text-sm text-ink-soft">
         {data.label && (
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="font-medium text-ink">
             {data.label}:{" "}
           </span>
         )}
@@ -20,9 +20,9 @@ function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
   if (data.kind === "language") {
     return (
       <div className="flex justify-between items-baseline mb-1 text-sm">
-        <span className="text-zinc-900 dark:text-zinc-100">{data.label}</span>
+        <span className="text-ink">{data.label}</span>
         {data.proficiency && (
-          <span className="text-zinc-500 dark:text-zinc-400">{data.proficiency}</span>
+          <span className="text-muted">{data.proficiency}</span>
         )}
       </div>
     );
@@ -33,33 +33,33 @@ function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
       <div className="flex justify-between items-baseline gap-2 flex-wrap">
         <div>
           {data.heading && (
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            <span className="text-sm font-medium text-ink">
               {data.heading}
             </span>
           )}
           {data.subheading && (
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1.5">
+            <span className="text-sm text-muted ml-1.5">
               {data.subheading}
             </span>
           )}
         </div>
         {data.date && (
-          <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
+          <span className="text-xs text-muted shrink-0">
             {data.date}
           </span>
         )}
       </div>
       {data.body && (
-        <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-0.5">{data.body}</p>
+        <p className="text-sm text-ink-soft mt-0.5">{data.body}</p>
       )}
       {data.bullets.length > 0 && (
         <ul className="mt-1 space-y-0.5">
           {data.bullets.map((b, i) => (
             <li
               key={i}
-              className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+              className="flex gap-2 text-sm text-ink-soft"
             >
-              <span className="shrink-0 select-none">•</span>
+              <span className="shrink-0 select-none text-moss">—</span>
               <span>{b}</span>
             </li>
           ))}
@@ -71,13 +71,16 @@ function EntryBlock({ entry, type }: { entry: Entry; type: SectionType }) {
 
 export function ResumePreview({ resume }: { resume: ResumeJSON }) {
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-8 py-6 text-sm leading-relaxed">
+    <div className="relative border border-line-ink bg-card px-8 py-6 text-sm leading-relaxed shadow-[10px_12px_0_-2px_var(--paper-2),10px_12px_0_-1px_var(--line-ink)]">
+      <span className="absolute -top-[11px] right-[22px] bg-paper px-2.5 text-[11px] uppercase tracking-[0.18em] text-muted">
+        Specimen
+      </span>
       <div className="text-center mb-5">
-        <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+        <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">
           {resume.name}
         </h1>
         {resume.contact.length > 0 && (
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-xs">
+          <p className="text-muted mt-1 text-xs">
             {resume.contact.join(" · ")}
           </p>
         )}
@@ -85,7 +88,7 @@ export function ResumePreview({ resume }: { resume: ResumeJSON }) {
 
       {resume.summary && (
         <div className="mb-4">
-          <p className="text-zinc-700 dark:text-zinc-300 text-sm">
+          <p className="text-ink-soft text-sm">
             {resume.summary}
           </p>
         </div>
@@ -93,7 +96,7 @@ export function ResumePreview({ resume }: { resume: ResumeJSON }) {
 
       {resume.sections.map((section, i) => (
         <div key={i} className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-700 pb-1 mb-2">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-forest border-b border-line-ink pb-1 mb-2">
             {section.title}
           </h2>
           {section.entries.map((entry, j) => (

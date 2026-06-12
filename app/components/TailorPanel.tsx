@@ -62,7 +62,7 @@ export const TailorPanel = forwardRef<TailorPanelHandle>(
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-foreground mb-4">Tailor My Resume</h2>
+      <h2 className="font-serif text-xl font-medium text-ink mb-4">Tailor My Résumé</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <textarea
           ref={textareaRef}
@@ -71,18 +71,20 @@ export const TailorPanel = forwardRef<TailorPanelHandle>(
           placeholder="Paste a job posting here…"
           rows={8}
           disabled={status === "loading"}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-foreground placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary resize-y disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full rounded-[2px] border border-line-ink bg-paper px-4 py-3 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-forest resize-y disabled:opacity-60 disabled:cursor-not-allowed"
         />
 
         {status === "exhausted" && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm">
-            <p className="font-medium text-amber-900">You&apos;ve reached your Tailor Allowance.</p>
-            <p className="mt-1 text-amber-700">
-              Upgrade your plan to continue tailoring resumes.
+          <div className="rounded-[2px] border border-gold/50 bg-gold/10 px-4 py-4 text-sm">
+            <p className="font-serif text-base font-medium italic text-ink">
+              You&apos;ve reached your Tailor Allowance.
+            </p>
+            <p className="mt-1 text-ink-soft">
+              Upgrade your plan to continue tailoring résumés.
             </p>
             <Link
               href="/pricing"
-              className="mt-3 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
+              className="mt-3 inline-block rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink"
             >
               View pricing →
             </Link>
@@ -90,7 +92,7 @@ export const TailorPanel = forwardRef<TailorPanelHandle>(
         )}
 
         {status === "error" && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-[2px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -98,14 +100,14 @@ export const TailorPanel = forwardRef<TailorPanelHandle>(
         <button
           type="submit"
           disabled={status === "loading" || !jobText.trim()}
-          className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer rounded-[2px] border border-forest bg-forest px-5 py-2.5 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {status === "loading" ? "Tailoring…" : "Tailor My Resume"}
+          {status === "loading" ? "Tailoring…" : "Tailor My Résumé"}
         </button>
       </form>
 
       {result && (
-        <div className="mt-8 border-t border-neutral-200 pt-8">
+        <div className="mt-8 border-t border-line-ink pt-8">
           <ResumeResultPanel resume={result} />
         </div>
       )}

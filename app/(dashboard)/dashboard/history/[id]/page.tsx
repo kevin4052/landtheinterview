@@ -38,13 +38,13 @@ export default async function ResumeDetailPage({
       <div className="mb-8">
         <Link
           href="/dashboard/history"
-          className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+          className="text-sm text-muted hover:text-ink transition-colors"
         >
-          ← Resume History
+          ← Résumé History
         </Link>
         <div className="mt-4">
           <ResumeTitleEditor id={id} title={resolvedTitle} />
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{date}</p>
+          <p className="text-sm text-muted mt-1">{date}</p>
         </div>
       </div>
 

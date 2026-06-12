@@ -43,9 +43,9 @@ export function PersonalInfoSection({ name, email }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
+    <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Personal Info</h2>
+        <h2 className="font-serif text-xl font-medium text-ink">Personal Info</h2>
         {!isEditing && (
           <button
             onClick={handleEdit}
@@ -65,7 +65,7 @@ export function PersonalInfoSection({ name, email }: Props) {
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               required
-              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div className="space-y-1">
@@ -75,7 +75,7 @@ export function PersonalInfoSection({ name, email }: Props) {
               value={formEmail}
               onChange={(e) => setFormEmail(e.target.value)}
               required
-              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -83,14 +83,14 @@ export function PersonalInfoSection({ name, email }: Props) {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-60"
+              className="rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-60"
             >
               {saving ? "Saving…" : "Save"}
             </button>
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:text-foreground transition-colors"
+              className="rounded-[2px] px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
             >
               Cancel
             </button>

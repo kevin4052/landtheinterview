@@ -42,12 +42,12 @@ function emptyEdu(): Edu {
 const STEP_LABELS = ["Personal Info", "Work Experience", "Skills", "Education"];
 
 const inputCls =
-  "w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
+  "w-full border border-line-ink bg-paper rounded-[2px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 focus:border-forest transition-colors";
 const labelCls = "block text-sm font-medium text-foreground mb-1";
 const primaryBtn =
-  "bg-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  "border border-forest bg-forest text-paper rounded-[2px] px-4 py-2 text-sm font-semibold hover:bg-ink hover:border-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 const ghostBtn =
-  "border border-neutral-300 text-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition-colors";
+  "border border-line-ink text-ink-soft rounded-[2px] px-4 py-2 text-sm font-medium hover:border-forest hover:text-forest transition-colors";
 
 export function OnboardingForm({
   initialName,
@@ -170,19 +170,19 @@ export function OnboardingForm({
             <Fragment key={num}>
               <div className="flex flex-col items-center gap-1 shrink-0">
                 <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                  className={`h-8 w-8 rounded-full flex items-center justify-center font-serif text-sm font-semibold transition-colors ${
                     done
-                      ? "bg-primary text-white"
+                      ? "bg-forest text-paper"
                       : active
-                      ? "border-2 border-primary text-primary bg-white"
-                      : "border-2 border-neutral-300 text-neutral-400 bg-white"
+                      ? "border-[1.5px] border-forest text-forest bg-paper italic"
+                      : "border-[1.5px] border-line-ink text-muted bg-paper"
                   }`}
                 >
                   {done ? "✓" : num}
                 </div>
                 <span
                   className={`text-xs text-center w-16 ${
-                    active ? "text-primary font-medium" : "text-neutral-400"
+                    active ? "text-forest font-medium" : "text-muted"
                   }`}
                 >
                   {label}
@@ -191,7 +191,7 @@ export function OnboardingForm({
               {i < STEP_LABELS.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mt-4 mx-1 transition-colors ${
-                    done ? "bg-primary" : "bg-neutral-200"
+                    done ? "bg-forest" : "bg-line"
                   }`}
                 />
               )}
@@ -201,11 +201,11 @@ export function OnboardingForm({
       </div>
 
       {/* Card */}
-      <div className="bg-white border border-neutral-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-card border border-line-ink rounded-[2px] p-6">
         {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Your info</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">Your info</h2>
             <div>
               <label className={labelCls}>Full name</label>
               <input
@@ -231,7 +231,7 @@ export function OnboardingForm({
         {/* Step 2 */}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Work experience</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">Work experience</h2>
             <p className="text-sm text-neutral-500">Add at least one position.</p>
 
             {workExps.length > 0 && (
@@ -239,7 +239,7 @@ export function OnboardingForm({
                 {workExps.map((e, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
@@ -260,7 +260,7 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Company</label>
@@ -335,7 +335,7 @@ export function OnboardingForm({
               <button
                 onClick={addWorkExp}
                 disabled={!canAddWork}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add entry
               </button>
@@ -346,7 +346,7 @@ export function OnboardingForm({
         {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Skills</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
             <p className="text-sm text-neutral-500">
               Group your skills by category (e.g. Languages, Frameworks, Tools).
             </p>
@@ -356,7 +356,7 @@ export function OnboardingForm({
                 {skillCats.map((c, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{c.categoryName}</p>
@@ -373,7 +373,7 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div>
                 <label className={labelCls}>Category name</label>
                 <input
@@ -419,7 +419,7 @@ export function OnboardingForm({
               <button
                 onClick={addSkillCat}
                 disabled={!canAddCat}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add category
               </button>
@@ -430,7 +430,7 @@ export function OnboardingForm({
         {/* Step 4 */}
         {step === 4 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Education</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
             <p className="text-sm text-neutral-500">Add your educational background.</p>
 
             {educations.length > 0 && (
@@ -438,7 +438,7 @@ export function OnboardingForm({
                 {educations.map((e, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
@@ -457,7 +457,7 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div>
                 <label className={labelCls}>School</label>
                 <input
@@ -522,7 +522,7 @@ export function OnboardingForm({
               <button
                 onClick={addEdu}
                 disabled={!canAddEdu}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add entry
               </button>

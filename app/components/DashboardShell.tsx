@@ -54,33 +54,37 @@ export function DashboardShell({
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          className="fixed inset-0 z-20 bg-ink/40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* dark sidebar */}
+      {/* forest sidebar */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-30 flex w-64 flex-col bg-slate-900 transition-transform duration-200 ease-in-out md:static md:top-auto md:bottom-auto md:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-30 flex w-64 flex-col bg-forest text-paper transition-transform duration-200 ease-in-out md:static md:top-auto md:bottom-auto md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* brand */}
-        <div className="px-5 py-5 border-b border-white/[0.06] shrink-0">
+        <div className="px-5 py-5 border-b border-paper/15 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
-              <span className="text-white text-[10px] font-extrabold tracking-wider">LI</span>
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-[1.5px] border-paper/70 font-serif text-base font-semibold italic text-paper">
+              L
             </div>
             <div>
-              <p className="text-sm font-bold text-white/90 leading-tight">Land the Interview</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">AI Resume Tailoring</p>
+              <p className="font-serif text-[15px] font-semibold leading-tight text-paper">
+                Land the Interview
+              </p>
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.18em] text-paper/50">
+                The tailored résumé
+              </p>
             </div>
           </div>
         </div>
 
         {/* nav */}
         <nav className="flex-1 overflow-auto px-3 py-4">
-          <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-paper/40">
             Main
           </p>
           {navLinks.map(({ href, label, exact }) => {
@@ -92,17 +96,17 @@ export function DashboardShell({
                 key={href}
                 href={href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-0.5 transition-all ${
+                className={`mb-0.5 flex items-center gap-2.5 rounded-[2px] px-3 py-2.5 text-sm transition-colors ${
                   isActive
-                    ? "bg-slate-800 text-white border border-slate-700 font-medium shadow-sm"
-                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
+                    ? "bg-paper/10 font-medium text-paper"
+                    : "text-paper/60 hover:bg-paper/5 hover:text-paper"
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    isActive ? "bg-indigo-400" : "bg-slate-700"
-                  }`}
-                />
+                  className={`text-xs ${isActive ? "text-gold" : "text-paper/30"}`}
+                >
+                  ✦
+                </span>
                 {label}
               </Link>
             );
@@ -110,34 +114,36 @@ export function DashboardShell({
         </nav>
 
         {/* footer: usage widget + user card */}
-        <div className="px-3 pb-4 border-t border-white/[0.06] pt-3 space-y-2 shrink-0">
-          <div className="rounded-xl bg-gradient-to-br from-indigo-600/20 to-violet-600/10 border border-indigo-500/20 px-3 py-3">
-            <p className="text-[10px] font-semibold text-slate-400">
+        <div className="px-3 pb-4 border-t border-paper/15 pt-3 space-y-2 shrink-0">
+          <div className="border-t border-paper/30 px-3 py-3">
+            <p className="font-serif text-sm italic text-paper/70">
               On the {planLabels[plan]} plan
             </p>
             {hasUsage ? (
-              <div className="flex items-center gap-2 mt-1.5">
-                <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div className="mt-1.5 flex items-center gap-2">
+                <div className="h-1 flex-1 overflow-hidden bg-paper/20">
                   <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                    className="h-full bg-gold"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 shrink-0">
+                <span className="shrink-0 text-[10px] text-paper/60">
                   {usageRemaining}/{usageTotal}
                 </span>
               </div>
             ) : (
-              <p className="text-[10px] text-slate-500 mt-1">Unlimited</p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-paper/50">
+                Unlimited
+              </p>
             )}
           </div>
 
-          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-800">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <div className="flex items-center gap-2.5 rounded-[2px] bg-forest-2 px-3 py-2.5">
+            <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-paper/50 font-serif text-xs italic text-paper">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white/80 truncate">{displayName}</p>
+              <p className="truncate text-xs font-medium text-paper/90">{displayName}</p>
             </div>
           </div>
         </div>
@@ -146,11 +152,11 @@ export function DashboardShell({
       {/* main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* mobile top bar */}
-        <div className="flex items-center gap-2 border-b border-neutral-100 bg-white px-4 py-2 md:hidden shrink-0">
+        <div className="flex items-center gap-2 border-b border-line-ink bg-paper px-4 py-2 md:hidden shrink-0">
           <button
             aria-label="Toggle sidebar"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-100"
+            className="rounded-[2px] p-1.5 text-ink-soft transition-colors hover:bg-paper-2"
           >
             {sidebarOpen ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -163,7 +169,7 @@ export function DashboardShell({
             )}
           </button>
         </div>
-        <div className="flex-1 overflow-auto bg-neutral-50">{children}</div>
+        <div className="flex-1 overflow-auto bg-paper">{children}</div>
       </div>
     </div>
   );

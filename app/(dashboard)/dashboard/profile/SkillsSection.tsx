@@ -64,7 +64,7 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="space-y-1">
         <label className="block text-xs font-medium text-neutral-600">Category Name</label>
         <input
@@ -73,7 +73,7 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
           onChange={(e) => set("name", e.target.value)}
           required
           placeholder="Programming Languages"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
@@ -87,7 +87,7 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
           onChange={(e) => set("skillsText", e.target.value)}
           required
           placeholder="TypeScript, Python, Go"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
@@ -97,14 +97,14 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-60"
+          className="rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:text-foreground transition-colors"
+          className="rounded-[2px] px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
         >
           Cancel
         </button>
@@ -140,7 +140,7 @@ function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
             {category.skills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+                className="inline-flex items-center border-b border-moss pb-px font-serif text-[13px] italic text-forest"
               >
                 {skill}
               </span>
@@ -220,9 +220,9 @@ export function SkillsSection({ initialCategories }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
+    <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Skills</h2>
+        <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
         {!isAdding && (
           <button
             onClick={() => { setIsAdding(true); setEditingId(null); }}

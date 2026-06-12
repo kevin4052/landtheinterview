@@ -2,6 +2,11 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { UpgradeButton } from "@/app/components/UpgradeButton";
 
+const btnSolid =
+  "inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[2px] border border-forest bg-forest px-[22px] py-3 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-50";
+const btnLine =
+  "inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[2px] border border-forest bg-transparent px-[22px] py-3 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-paper disabled:opacity-50";
+
 const tiers = [
   {
     name: "Free",
@@ -34,34 +39,41 @@ export default async function PricingPage() {
   const { userId } = await auth();
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-foreground">Simple pricing</h1>
-        <p className="mt-3 text-neutral-500">Start free. Upgrade when you need more.</p>
+    <main className="mx-auto max-w-[1000px] px-6 py-20 sm:px-10">
+      <div className="mb-14">
+        <div className="mb-7 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+          <span>Pricing</span>
+          <span className="h-px w-14 bg-line-ink" />
+          <span>Plain terms</span>
+        </div>
+        <h1 className="max-w-[720px] font-serif text-4xl font-normal leading-[1.04] tracking-[-0.02em] md:text-5xl">
+          Begin without charge.{" "}
+          <em className="italic text-forest">Subscribe when the search is on.</em>
+        </h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid border border-ink md:grid-cols-3">
         {tiers.map((tier) => (
           <div
             key={tier.name}
-            className={`rounded-xl border p-6 flex flex-col gap-4 ${
-              "highlight" in tier && tier.highlight
-                ? "border-primary bg-primary/5 shadow-md"
-                : "border-neutral-200 bg-white"
+            className={`flex flex-col border-b border-line-ink px-[34px] pb-[38px] pt-10 md:border-b-0 md:border-r md:last:border-r-0 ${
+              "highlight" in tier && tier.highlight ? "bg-paper-2" : ""
             }`}
           >
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">{tier.name}</h2>
-              <div className="mt-1 flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-foreground">{tier.price}</span>
-                <span className="text-sm text-neutral-500">/{tier.period}</span>
-              </div>
+            <div className="font-serif text-[22px] italic text-forest">{tier.name}</div>
+            <div className="mb-1.5 mt-[18px] font-serif text-[58px] font-normal leading-none tracking-[-0.02em]">
+              {tier.price}{" "}
+              <small className="font-sans text-[15px] font-medium text-muted">
+                / {tier.period}
+              </small>
             </div>
 
-            <ul className="flex-1 space-y-2">
+            <ul className="mb-7 mt-6 flex flex-1 flex-col gap-3">
               {tier.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-neutral-600">
-                  <span className="mt-0.5 text-primary font-bold">✓</span>
+                <li
+                  key={f}
+                  className="relative pl-[22px] text-[14.5px] leading-[1.45] text-ink-soft before:absolute before:left-0 before:text-moss before:content-['—']"
+                >
                   {f}
                 </li>
               ))}
@@ -72,18 +84,15 @@ export default async function PricingPage() {
                 <UpgradeButton
                   plan={tier.plan}
                   label={tier.cta}
-                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-50"
+                  className={tier.highlight ? btnSolid : btnLine}
                 />
               ) : (
-                <Link
-                  href="/sign-up"
-                  className="block w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white text-center hover:bg-primary-hover transition-colors"
-                >
+                <Link href="/sign-up" className={tier.highlight ? btnSolid : btnLine}>
                   Get started
                 </Link>
               )
             ) : (
-              <div className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm font-medium text-neutral-500 text-center">
+              <div className="w-full rounded-[2px] border border-line-ink px-[22px] py-3 text-center text-sm font-medium text-muted">
                 Current plan
               </div>
             )}

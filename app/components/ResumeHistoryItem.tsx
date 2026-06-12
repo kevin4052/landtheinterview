@@ -60,7 +60,7 @@ export function ResumeHistoryItem({ id, title: initialTitle, date }: ResumeHisto
 
   return (
     <li>
-      <div className="py-4 flex items-center justify-between gap-4 hover:bg-neutral-50 transition-colors rounded-lg px-2 -mx-2 group">
+      <div className="py-4 flex items-center justify-between gap-4 hover:bg-paper-2 transition-colors rounded-[2px] px-2 -mx-2 group">
         <div className="flex-1 min-w-0">
           {editing ? (
             <input
@@ -69,21 +69,21 @@ export function ResumeHistoryItem({ id, title: initialTitle, date }: ResumeHisto
               onChange={(e) => setDraft(e.target.value)}
               onBlur={save}
               onKeyDown={onKeyDown}
-              className="font-medium text-sm w-full bg-transparent border-b border-neutral-400 outline-none"
+              className="font-serif font-medium text-base w-full bg-transparent border-b border-line-ink outline-none"
               autoFocus
             />
           ) : (
             <div className="flex items-center gap-1.5">
               <Link
                 href={`/dashboard/history/${id}`}
-                className="font-medium text-sm truncate"
+                className="font-serif font-medium text-base truncate text-ink group-hover:text-forest transition-colors"
               >
                 {title}
               </Link>
               <button
                 onClick={startEditing}
                 aria-label="Rename"
-                className="opacity-100 md:opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-neutral-700 transition-opacity flex-shrink-0"
+                className="opacity-100 md:opacity-0 group-hover:opacity-100 text-muted hover:text-ink transition-opacity flex-shrink-0"
               >
                 <PencilIcon />
               </button>
@@ -92,11 +92,11 @@ export function ResumeHistoryItem({ id, title: initialTitle, date }: ResumeHisto
           {error && (
             <p className="text-xs text-red-600 mt-0.5">{error}</p>
           )}
-          <p className="text-xs text-neutral-500 mt-0.5">{date}</p>
+          <p className="text-xs text-muted mt-0.5">{date}</p>
         </div>
         <Link
           href={`/dashboard/history/${id}`}
-          className="text-xs text-neutral-400 shrink-0"
+          className="text-xs text-forest shrink-0"
           tabIndex={-1}
         >
           View →
