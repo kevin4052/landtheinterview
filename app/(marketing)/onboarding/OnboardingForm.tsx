@@ -2,6 +2,7 @@
 
 import { Fragment, KeyboardEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BulletsInput } from "@/app/components/BulletsInput";
 
 type WorkExp = {
   company: string;
@@ -10,7 +11,7 @@ type WorkExp = {
   endDate: string;
   isCurrent: boolean;
   location: string;
-  bullets: string;
+  bullets: string[];
 };
 
 type SkillCat = {
@@ -28,7 +29,7 @@ type Edu = {
 };
 
 function emptyWorkExp(): WorkExp {
-  return { company: "", title: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: "" };
+  return { company: "", title: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: [] };
 }
 
 function emptySkillCat(): SkillCat {
@@ -128,10 +129,7 @@ export function OnboardingForm({
             endDate: e.isCurrent ? undefined : e.endDate || undefined,
             isCurrent: e.isCurrent,
             location: e.location || undefined,
-            bullets: e.bullets
-              .split("\n")
-              .map((b) => b.trim())
-              .filter(Boolean),
+            bullets: e.bullets.map((b) => b.trim()).filter(Boolean),
           })),
           skillCategories: skillCats.map((c) => ({
             categoryName: c.categoryName,
@@ -323,13 +321,12 @@ export function OnboardingForm({
                 />
               </div>
               <div>
-                <label className={labelCls}>Bullet points (one per line, optional)</label>
-                <textarea
-                  className={`${inputCls} resize-none`}
-                  rows={3}
-                  value={wDraft.bullets}
-                  onChange={(e) => setWDraft((p) => ({ ...p, bullets: e.target.value }))}
+                <label className={labelCls}>Bullet points (optional)</label>
+                <BulletsInput
+                  bullets={wDraft.bullets}
+                  onChange={(bullets) => setWDraft((p) => ({ ...p, bullets }))}
                   placeholder="Shipped new checkout flow that increased conversions by 12%"
+                  textareaClassName={inputCls}
                 />
               </div>
               <button

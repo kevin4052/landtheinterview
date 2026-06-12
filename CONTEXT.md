@@ -9,8 +9,12 @@ The persistent record of a user's career data — name, contact email, work expe
 _Avoid_: resume, CV, profile data
 
 **Work Experience**:
-A single job entry within a User Profile — company, title, start/end dates, isCurrent flag, optional location, and bullet points.
+A single job entry within a User Profile — company, title, start/end dates, isCurrent flag, optional location, and Bullets.
 _Avoid_: job, role, position
+
+**Bullet**:
+A single line of achievement text within a Work Experience. Always exactly one line — a Bullet never contains line breaks. Bullets are ordered, and the order is meaningful.
+_Avoid_: bullet point, accomplishment, highlight, line item
 
 **Education**:
 An academic entry within a User Profile — school, degree, field of study, and dates.

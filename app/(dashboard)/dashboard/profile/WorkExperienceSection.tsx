@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { WorkExperienceEntry } from "./types";
 import { toMonthInput, formatMonth } from "./dateUtils";
+import { BulletsInput } from "@/app/components/BulletsInput";
 
 type Props = {
   initialEntries: WorkExperienceEntry[];
@@ -16,7 +17,7 @@ type FormState = {
   startDate: string;
   endDate: string;
   isCurrent: boolean;
-  bulletsText: string;
+  bullets: string[];
 };
 
 const emptyForm: FormState = {
@@ -26,7 +27,7 @@ const emptyForm: FormState = {
   startDate: "",
   endDate: "",
   isCurrent: false,
-  bulletsText: "",
+  bullets: [],
 };
 
 function entryToForm(entry: WorkExperienceEntry): FormState {
@@ -37,7 +38,7 @@ function entryToForm(entry: WorkExperienceEntry): FormState {
     startDate: toMonthInput(entry.startDate),
     endDate: toMonthInput(entry.endDate),
     isCurrent: entry.isCurrent,
-    bulletsText: entry.bullets.join("\n"),
+    bullets: entry.bullets,
   };
 }
 
@@ -49,10 +50,7 @@ function formToPayload(form: FormState) {
     startDate: form.startDate,
     endDate: form.isCurrent ? undefined : form.endDate || undefined,
     isCurrent: form.isCurrent,
-    bullets: form.bulletsText
-      .split("\n")
-      .map((b) => b.trim())
-      .filter(Boolean),
+    bullets: form.bullets.map((b) => b.trim()).filter(Boolean),
   };
 }
 
@@ -154,15 +152,12 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
       </label>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">
-          Bullets (one per line)
-        </label>
-        <textarea
-          value={form.bulletsText}
-          onChange={(e) => set("bulletsText", e.target.value)}
-          rows={4}
-          placeholder="Built a distributed caching layer that reduced API latency by 40%&#10;Led a team of 4 engineers..."
-          className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+        <label className="block text-xs font-medium text-neutral-600">Bullets</label>
+        <BulletsInput
+          bullets={form.bullets}
+          onChange={(bullets) => set("bullets", bullets)}
+          placeholder="Built a distributed caching layer that reduced API latency by 40%"
+          textareaClassName="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
