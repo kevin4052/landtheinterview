@@ -51,6 +51,8 @@ export const userProfiles = pgTable("user_profiles", {
     .references(() => tenants.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  phone: text("phone"),
+  location: text("location"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

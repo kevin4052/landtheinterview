@@ -8,6 +8,8 @@ function makeProfile(overrides: Partial<FullProfile> = {}): FullProfile {
     tenantId: "tenant_123",
     name: "Jane Doe",
     email: "jane@example.com",
+    phone: null,
+    location: null,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
     workExperience: [],
@@ -64,6 +66,31 @@ describe("serializeProfileToResumeText", () => {
     const result = serializeProfileToResumeText(makeProfile());
     expect(result).toContain("Jane Doe");
     expect(result).toContain("jane@example.com");
+  });
+
+  it("renders contact block with phone and location one per line when present", () => {
+    const profile = makeProfile({ phone: "555-123-4567", location: "Austin, TX" });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.startsWith("Jane Doe\njane@example.com\n555-123-4567\nAustin, TX")).toBe(true);
+  });
+
+  it("includes phone without location", () => {
+    const profile = makeProfile({ phone: "555-123-4567" });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.startsWith("Jane Doe\njane@example.com\n555-123-4567")).toBe(true);
+    expect(result).not.toContain("null");
+  });
+
+  it("includes location without phone", () => {
+    const profile = makeProfile({ location: "Austin, TX" });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.startsWith("Jane Doe\njane@example.com\nAustin, TX")).toBe(true);
+  });
+
+  it("omits phone and location lines when absent", () => {
+    const result = serializeProfileToResumeText(makeProfile());
+    expect(result.startsWith("Jane Doe\njane@example.com\n\n") || result === "Jane Doe\njane@example.com").toBe(true);
+    expect(result).not.toContain("null");
   });
 
   it("fully populated profile contains all sections", () => {

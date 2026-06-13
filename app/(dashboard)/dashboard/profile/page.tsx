@@ -57,7 +57,12 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-3 gap-5 items-start">
         {/* left narrow col: personal info + skills */}
         <div className="space-y-5">
-          <PersonalInfoSection name={profile.name} email={profile.email} />
+          <PersonalInfoSection
+            name={profile.name}
+            email={profile.email}
+            phone={profile.phone}
+            location={profile.location}
+          />
           <SkillsSection initialCategories={profile.skillCategories} />
         </div>
 

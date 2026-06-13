@@ -6,20 +6,26 @@ import { useRouter } from "next/navigation";
 type Props = {
   name: string;
   email: string;
+  phone: string | null;
+  location: string | null;
 };
 
-export function PersonalInfoSection({ name, email }: Props) {
+export function PersonalInfoSection({ name, email, phone, location }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [formName, setFormName] = useState(name);
   const [formEmail, setFormEmail] = useState(email);
+  const [formPhone, setFormPhone] = useState(phone ?? "");
+  const [formLocation, setFormLocation] = useState(location ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function handleEdit() {
     setFormName(name);
     setFormEmail(email);
+    setFormPhone(phone ?? "");
+    setFormLocation(location ?? "");
     setError(null);
     setIsEditing(true);
   }
@@ -31,7 +37,12 @@ export function PersonalInfoSection({ name, email }: Props) {
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: formName, email: formEmail }),
+      body: JSON.stringify({
+        name: formName,
+        email: formEmail,
+        phone: formPhone,
+        location: formLocation,
+      }),
     });
     setSaving(false);
     if (res.ok) {
@@ -78,6 +89,25 @@ export function PersonalInfoSection({ name, email }: Props) {
               className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-neutral-600">Phone</label>
+            <input
+              type="tel"
+              value={formPhone}
+              onChange={(e) => setFormPhone(e.target.value)}
+              className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-neutral-600">Location</label>
+            <input
+              type="text"
+              value={formLocation}
+              onChange={(e) => setFormLocation(e.target.value)}
+              placeholder="e.g. Austin, TX"
+              className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-3">
             <button
@@ -105,6 +135,14 @@ export function PersonalInfoSection({ name, email }: Props) {
           <div>
             <dt className="text-xs font-medium text-neutral-500">Email</dt>
             <dd className="mt-0.5 text-sm text-foreground">{email}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium text-neutral-500">Phone</dt>
+            <dd className="mt-0.5 text-sm text-foreground">{phone || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium text-neutral-500">Location</dt>
+            <dd className="mt-0.5 text-sm text-foreground">{location || "—"}</dd>
           </div>
         </dl>
       )}

@@ -1,12 +1,20 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { userProfiles } from "@/lib/db/schema";
+
+// Empty/whitespace input clears the field; omitting it leaves it unchanged.
+const optionalText = z
+  .string()
+  .transform((v) => v.trim() || null)
+  .nullable()
+  .optional();
 
 const UpdateProfileSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
+  phone: optionalText,
+  location: optionalText,
 });
 
 export async function PATCH(request: Request) {
@@ -31,7 +39,13 @@ export async function PATCH(request: Request) {
     const [updated] = await db
       .update(userProfiles)
       .set(parsed.data)
-      .returning({ id: userProfiles.id, name: userProfiles.name, email: userProfiles.email });
+      .returning({
+        id: userProfiles.id,
+        name: userProfiles.name,
+        email: userProfiles.email,
+        phone: userProfiles.phone,
+        location: userProfiles.location,
+      });
     if (!updated) return Response.json({ error: "Not found" }, { status: 404 });
     return Response.json(updated);
   } catch (err) {

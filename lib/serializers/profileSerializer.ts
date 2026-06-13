@@ -46,8 +46,10 @@ function serializeSkillCategories(entries: SkillCat[]): string {
 export function serializeProfileToResumeText(profile: FullProfile): string {
   const sections: string[] = [];
 
-  sections.push(profile.name);
-  sections.push(profile.email);
+  const contact = [profile.name, profile.email, profile.phone, profile.location]
+    .filter(Boolean)
+    .join("\n");
+  sections.push(contact);
 
   if (profile.workExperience.length > 0) {
     sections.push("WORK EXPERIENCE\n" + serializeWorkExperience(profile.workExperience));
