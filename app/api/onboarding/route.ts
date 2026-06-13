@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { ensureTenant, profileIsComplete } from "@/lib/db/profile";
 import { parseMonthDate } from "@/lib/utils/date";
+import { ContactLinksSchema, normalizeContactUrl } from "@/lib/validators/contactLink.schema";
 
 const MonthDateString = z
   .string()
@@ -17,6 +18,22 @@ const WorkExpSchema = z.object({
   endDate: MonthDateString.optional(),
   isCurrent: z.boolean(),
   location: z.string().optional(),
+  bullets: z.array(z.string().min(1)),
+});
+
+// Same normalization the dashboard applies to Personal Project URLs.
+const ProjectUrlString = z.string().transform((value, ctx) => {
+  const normalized = normalizeContactUrl(value);
+  if (normalized === null) {
+    ctx.addIssue({ code: "custom", message: "Invalid URL" });
+    return z.NEVER;
+  }
+  return normalized;
+});
+
+const PersonalProjectSchema = z.object({
+  title: z.string().min(1),
+  url: ProjectUrlString.optional(),
   bullets: z.array(z.string().min(1)),
 });
 
@@ -37,7 +54,11 @@ const EducationSchema = z.object({
 const OnboardingBodySchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
+  phone: z.string().transform((v) => v.trim() || null).optional(),
+  location: z.string().transform((v) => v.trim() || null).optional(),
+  contactLinks: ContactLinksSchema.default([]),
   workExperience: z.array(WorkExpSchema).min(1),
+  personalProjects: z.array(PersonalProjectSchema).default([]),
   skillCategories: z.array(SkillCatSchema),
   education: z.array(EducationSchema),
 });
@@ -62,7 +83,11 @@ export async function POST(request: Request) {
   const {
     name,
     email,
+    phone,
+    location,
+    contactLinks,
     workExperience: workExp,
+    personalProjects: projects,
     skillCategories: skillCats,
     education: edu,
   } = parsed.data;
@@ -95,6 +120,14 @@ export async function POST(request: Request) {
         skills: cat.skills,
       }))
     );
+    const contactLinksJson = JSON.stringify(contactLinks);
+    const personalProjectsJson = JSON.stringify(
+      projects.map((p) => ({
+        title: p.title,
+        url: p.url ?? null,
+        bullets: p.bullets,
+      }))
+    );
     const educationJson = JSON.stringify(
       edu.map((e) => ({
         school: e.school,
@@ -113,8 +146,8 @@ export async function POST(request: Request) {
         ) AS id
       ),
       inserted_profile AS (
-        INSERT INTO user_profiles (tenant_id, name, email)
-        SELECT id, ${name}, ${email}
+        INSERT INTO user_profiles (tenant_id, name, email, phone, location, contact_links)
+        SELECT id, ${name}, ${email}, ${phone ?? null}, ${location ?? null}, ${contactLinksJson}::jsonb
         FROM tenant
         RETURNING id, tenant_id
       ),
@@ -150,6 +183,21 @@ export async function POST(request: Request) {
           location text,
           bullets jsonb
         )
+      ),
+      inserted_personal_projects AS (
+        INSERT INTO personal_projects (tenant_id, profile_id, title, url, bullets, created_at)
+        SELECT
+          profile.tenant_id,
+          profile.id,
+          item.value->>'title',
+          item.value->>'url',
+          ARRAY(SELECT jsonb_array_elements_text(item.value->'bullets')),
+          -- now() is constant across the statement; stagger created_at by array
+          -- position so Personal Projects keep their creation order.
+          now() + (item.ordinality * interval '1 millisecond')
+        FROM inserted_profile profile
+        CROSS JOIN jsonb_array_elements(${personalProjectsJson}::jsonb)
+          WITH ORDINALITY AS item(value, ordinality)
       ),
       inserted_skill_categories AS (
         INSERT INTO skill_categories (tenant_id, profile_id, name, skills)

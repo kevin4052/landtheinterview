@@ -14,6 +14,17 @@ type WorkExp = {
   bullets: string[];
 };
 
+type Project = {
+  title: string;
+  url: string;
+  bullets: string[];
+};
+
+type ContactLink = {
+  label: string;
+  url: string;
+};
+
 type SkillCat = {
   categoryName: string;
   skills: string[];
@@ -32,6 +43,10 @@ function emptyWorkExp(): WorkExp {
   return { company: "", title: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: [] };
 }
 
+function emptyProject(): Project {
+  return { title: "", url: "", bullets: [] };
+}
+
 function emptySkillCat(): SkillCat {
   return { categoryName: "", skills: [] };
 }
@@ -40,7 +55,9 @@ function emptyEdu(): Edu {
   return { school: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", isCurrent: false };
 }
 
-const STEP_LABELS = ["Personal Info", "Work Experience", "Skills", "Education"];
+const STEP_LABELS = ["Personal Info", "Work Experience", "Projects", "Skills", "Education"];
+
+const LABEL_SUGGESTIONS = ["LinkedIn", "GitHub", "X", "Portfolio", "Website"];
 
 const inputCls =
   "w-full border border-line-ink bg-paper rounded-[2px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 focus:border-forest transition-colors";
@@ -64,9 +81,15 @@ export function OnboardingForm({
 
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [contactLinks, setContactLinks] = useState<ContactLink[]>([]);
 
   const [workExps, setWorkExps] = useState<WorkExp[]>([]);
   const [wDraft, setWDraft] = useState<WorkExp>(emptyWorkExp());
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [pDraft, setPDraft] = useState<Project>(emptyProject());
 
   const [skillCats, setSkillCats] = useState<SkillCat[]>([]);
   const [sDraft, setSDraft] = useState<SkillCat>(emptySkillCat());
@@ -76,6 +99,7 @@ export function OnboardingForm({
   const [eDraft, setEDraft] = useState<Edu>(emptyEdu());
 
   const canAddWork = wDraft.company.trim() && wDraft.title.trim() && wDraft.startDate;
+  const canAddProject = pDraft.title.trim();
   const canAddCat = sDraft.categoryName.trim() && sDraft.skills.length > 0;
   const canAddEdu = eDraft.school.trim() && eDraft.degree.trim() && eDraft.fieldOfStudy.trim() && eDraft.startDate;
 
@@ -83,6 +107,22 @@ export function OnboardingForm({
     if (!canAddWork) return;
     setWorkExps((p) => [...p, wDraft]);
     setWDraft(emptyWorkExp());
+  };
+
+  const addProject = () => {
+    if (!canAddProject) return;
+    setProjects((p) => [...p, pDraft]);
+    setPDraft(emptyProject());
+  };
+
+  const updateLink = (index: number, patch: Partial<ContactLink>) => {
+    setContactLinks((links) =>
+      links.map((link, i) => (i === index ? { ...link, ...patch } : link))
+    );
+  };
+
+  const removeLink = (index: number) => {
+    setContactLinks((links) => links.filter((_, i) => i !== index));
   };
 
   const addSkillToCategory = (raw: string) => {
@@ -122,6 +162,15 @@ export function OnboardingForm({
         body: JSON.stringify({
           name,
           email,
+          phone: phone.trim() || undefined,
+          location: location.trim() || undefined,
+          // Rows missing a label or URL are abandoned drafts, not data.
+          contactLinks: contactLinks.filter((l) => l.label.trim() && l.url.trim()),
+          personalProjects: projects.map((p) => ({
+            title: p.title,
+            url: p.url.trim() || undefined,
+            bullets: p.bullets.map((b) => b.trim()).filter(Boolean),
+          })),
           workExperience: workExps.map((e) => ({
             company: e.company,
             title: e.title,
@@ -222,6 +271,72 @@ export function OnboardingForm({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane@example.com"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Phone (optional)</label>
+                <input
+                  type="tel"
+                  className={inputCls}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="555-123-4567"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Location (optional)</label>
+                <input
+                  className={inputCls}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Austin, TX"
+                />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Links (optional)</label>
+              <datalist id="onboarding-link-label-suggestions">
+                {LABEL_SUGGESTIONS.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              <div className="space-y-2">
+                {contactLinks.map((link, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => updateLink(i, { label: e.target.value })}
+                      list="onboarding-link-label-suggestions"
+                      placeholder="Label"
+                      maxLength={40}
+                      className="w-28 shrink-0 border border-line-ink bg-paper rounded-[2px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 focus:border-forest transition-colors"
+                    />
+                    <input
+                      type="text"
+                      value={link.url}
+                      onChange={(e) => updateLink(i, { url: e.target.value })}
+                      placeholder="linkedin.com/in/you"
+                      className={inputCls}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeLink(i)}
+                      aria-label="Remove link"
+                      className="shrink-0 px-2 text-sm text-ink-soft hover:text-red-600 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setContactLinks((links) => [...links, { label: "", url: "" }])}
+                className="mt-2 text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+              >
+                + Add link
+              </button>
             </div>
           </div>
         )}
@@ -343,6 +458,75 @@ export function OnboardingForm({
         {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
+            <h2 className="font-serif text-xl font-medium text-ink">Personal projects</h2>
+            <p className="text-sm text-neutral-500">
+              Add self-directed projects you want on your resume. You can skip this step.
+            </p>
+
+            {projects.length > 0 && (
+              <ul className="space-y-2">
+                {projects.map((p, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{p.title}</p>
+                      {p.url && <p className="text-xs text-neutral-500 truncate">{p.url}</p>}
+                    </div>
+                    <button
+                      onClick={() => setProjects((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
+              <div>
+                <label className={labelCls}>Title</label>
+                <input
+                  className={inputCls}
+                  value={pDraft.title}
+                  onChange={(e) => setPDraft((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Open Source CLI Tool"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>URL (optional)</label>
+                <input
+                  className={inputCls}
+                  value={pDraft.url}
+                  onChange={(e) => setPDraft((p) => ({ ...p, url: e.target.value }))}
+                  placeholder="github.com/you/project"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Bullet points (optional)</label>
+                <BulletsInput
+                  bullets={pDraft.bullets}
+                  onChange={(bullets) => setPDraft((p) => ({ ...p, bullets }))}
+                  placeholder="Built a CLI that automates release notes from commit history"
+                  textareaClassName={inputCls}
+                />
+              </div>
+              <button
+                onClick={addProject}
+                disabled={!canAddProject}
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                + Add entry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4 */}
+        {step === 4 && (
+          <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
             <p className="text-sm text-neutral-500">
               Group your skills by category (e.g. Languages, Frameworks, Tools).
@@ -424,8 +608,8 @@ export function OnboardingForm({
           </div>
         )}
 
-        {/* Step 4 */}
-        {step === 4 && (
+        {/* Step 5 */}
+        {step === 5 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
             <p className="text-sm text-neutral-500">Add your educational background.</p>
@@ -540,17 +724,17 @@ export function OnboardingForm({
           )}
 
           <div className="flex items-center gap-2">
-            {step === 3 && (
-              <button onClick={() => setStep(4)} className={ghostBtn}>
+            {(step === 3 || step === 4) && (
+              <button onClick={() => setStep(step + 1)} className={ghostBtn}>
                 Skip for now
               </button>
             )}
-            {step === 4 && (
+            {step === 5 && (
               <button onClick={submit} disabled={submitting} className={ghostBtn}>
                 {submitting ? "Saving…" : "Skip for now"}
               </button>
             )}
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 onClick={() => setStep((s) => s + 1)}
                 disabled={
