@@ -49,8 +49,12 @@ AI-generated resume text that rewrites the Resume to match a specific Job Postin
 _Avoid_: Optimized resume, rewritten resume, output
 
 **Tailor**:
-The core operation — producing a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
+The core AI call — producing a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
 _Avoid_: Generate, optimize, process
+
+**Tailor Operation**:
+The full guarded action behind a single tailor request: validate the Job Posting input, decrement the Tenant's Tailor Allowance, run the Tailor, and record a Tailor Log. Distinct from **Tailor**, which is only the AI call within it. The Allowance is decremented _before_ the Tailor runs and _released_ if the Tailor fails, so a failed operation never spends Allowance.
+_Avoid_: tailor request, tailor flow, generate
 
 **Tailor Log**:
 A persisted DB record of a completed Tailor operation. Stores the serialized Resume text, Job Posting text, and Tailored Resume text for the user's history and internal audit.
@@ -73,10 +77,10 @@ _Avoid_: Credits, ops, quota, limit
 ## Relationships
 
 - A **User Profile** is serialized into a **Resume** text before being passed to a **Tailor** operation
-- A **Tailor** operation takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
-- A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor** operation
+- A **Tailor Operation** takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
+- A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor Operation**
 - A **Tenant** owns one **User Profile**, zero or more **Tailor Logs**, and one **Subscription Plan**
-- A **Tailor** operation is only permitted if the Tenant's **Tailor Allowance** is not exhausted
+- A **Tailor Operation** is only permitted if the Tenant's **Tailor Allowance** is not exhausted; a failed Tailor releases the decrement
 
 ## Example dialogue
 
