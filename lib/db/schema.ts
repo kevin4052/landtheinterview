@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   boolean,
+  jsonb,
   type AnyPgColumn,
   pgRole,
 } from "drizzle-orm/pg-core";
@@ -13,6 +14,10 @@ import { crudPolicy, authUid } from "drizzle-orm/neon";
 import { relations, sql } from "drizzle-orm";
 
 export const planEnum = pgEnum("plan", ["free", "mid", "pro"]);
+
+// Ordered label-and-URL pair on a User Profile (a profile field, not a
+// Profile Section — saves with Personal Info, no per-row lifecycle).
+export type ContactLink = { label: string; url: string };
 
 // The serverless driver connects DIRECTLY AS `authenticated_backend` — a
 // passwordless LOGIN role whose credential is the JWKS-validated Clerk JWT.
@@ -53,6 +58,10 @@ export const userProfiles = pgTable("user_profiles", {
   email: text("email").notNull(),
   phone: text("phone"),
   location: text("location"),
+  contactLinks: jsonb("contact_links")
+    .$type<ContactLink[]>()
+    .notNull()
+    .default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

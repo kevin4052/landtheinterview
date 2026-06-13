@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/client";
 import { userProfiles } from "@/lib/db/schema";
+import { ContactLinksSchema } from "@/lib/validators/contactLink.schema";
 
 // Empty/whitespace input clears the field; omitting it leaves it unchanged.
 const optionalText = z
@@ -15,6 +16,7 @@ const UpdateProfileSchema = z.object({
   email: z.string().email(),
   phone: optionalText,
   location: optionalText,
+  contactLinks: ContactLinksSchema.optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -45,6 +47,7 @@ export async function PATCH(request: Request) {
         email: userProfiles.email,
         phone: userProfiles.phone,
         location: userProfiles.location,
+        contactLinks: userProfiles.contactLinks,
       });
     if (!updated) return Response.json({ error: "Not found" }, { status: 404 });
     return Response.json(updated);

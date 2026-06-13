@@ -10,6 +10,7 @@ function makeProfile(overrides: Partial<FullProfile> = {}): FullProfile {
     email: "jane@example.com",
     phone: null,
     location: null,
+    contactLinks: [],
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
     workExperience: [],
@@ -91,6 +92,43 @@ describe("serializeProfileToResumeText", () => {
     const result = serializeProfileToResumeText(makeProfile());
     expect(result.startsWith("Jane Doe\njane@example.com\n\n") || result === "Jane Doe\njane@example.com").toBe(true);
     expect(result).not.toContain("null");
+  });
+
+  it("renders no link lines when there are zero Contact Links", () => {
+    const result = serializeProfileToResumeText(makeProfile());
+    expect(result.startsWith("Jane Doe\njane@example.com\n\n") || result === "Jane Doe\njane@example.com").toBe(true);
+  });
+
+  it("renders a single Contact Link as 'Label: url'", () => {
+    const profile = makeProfile({
+      contactLinks: [{ label: "LinkedIn", url: "https://linkedin.com/in/jane" }],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.startsWith("Jane Doe\njane@example.com\nLinkedIn: https://linkedin.com/in/jane")).toBe(true);
+  });
+
+  it("renders many Contact Links one per line in stored order", () => {
+    const profile = makeProfile({
+      contactLinks: [
+        { label: "GitHub", url: "https://github.com/jane" },
+        { label: "Portfolio", url: "https://jane.dev" },
+        { label: "X", url: "https://x.com/jane" },
+      ],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result).toContain(
+      "GitHub: https://github.com/jane\nPortfolio: https://jane.dev\nX: https://x.com/jane"
+    );
+  });
+
+  it("renders Contact Links after phone and location", () => {
+    const profile = makeProfile({
+      phone: "555-123-4567",
+      location: "Austin, TX",
+      contactLinks: [{ label: "GitHub", url: "https://github.com/jane" }],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.startsWith("Jane Doe\njane@example.com\n555-123-4567\nAustin, TX\nGitHub: https://github.com/jane")).toBe(true);
   });
 
   it("fully populated profile contains all sections", () => {

@@ -46,7 +46,13 @@ function serializeSkillCategories(entries: SkillCat[]): string {
 export function serializeProfileToResumeText(profile: FullProfile): string {
   const sections: string[] = [];
 
-  const contact = [profile.name, profile.email, profile.phone, profile.location]
+  const contact = [
+    profile.name,
+    profile.email,
+    profile.phone,
+    profile.location,
+    ...profile.contactLinks.map((link) => `${link.label}: ${link.url}`),
+  ]
     .filter(Boolean)
     .join("\n");
   sections.push(contact);

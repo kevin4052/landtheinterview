@@ -62,6 +62,7 @@ export default async function ProfilePage() {
             email={profile.email}
             phone={profile.phone}
             location={profile.location}
+            contactLinks={profile.contactLinks}
           />
           <SkillsSection initialCategories={profile.skillCategories} />
         </div>

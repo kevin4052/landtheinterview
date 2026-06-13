@@ -2,15 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import type { ContactLink } from "@/lib/db/schema";
+
+const LABEL_SUGGESTIONS = ["LinkedIn", "GitHub", "X", "Portfolio", "Website"];
 
 type Props = {
   name: string;
   email: string;
   phone: string | null;
   location: string | null;
+  contactLinks: ContactLink[];
 };
 
-export function PersonalInfoSection({ name, email, phone, location }: Props) {
+export function PersonalInfoSection({ name, email, phone, location, contactLinks }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
@@ -18,6 +22,7 @@ export function PersonalInfoSection({ name, email, phone, location }: Props) {
   const [formEmail, setFormEmail] = useState(email);
   const [formPhone, setFormPhone] = useState(phone ?? "");
   const [formLocation, setFormLocation] = useState(location ?? "");
+  const [formLinks, setFormLinks] = useState<ContactLink[]>(contactLinks);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,8 +31,19 @@ export function PersonalInfoSection({ name, email, phone, location }: Props) {
     setFormEmail(email);
     setFormPhone(phone ?? "");
     setFormLocation(location ?? "");
+    setFormLinks(contactLinks);
     setError(null);
     setIsEditing(true);
+  }
+
+  function updateLink(index: number, patch: Partial<ContactLink>) {
+    setFormLinks((links) =>
+      links.map((link, i) => (i === index ? { ...link, ...patch } : link))
+    );
+  }
+
+  function removeLink(index: number) {
+    setFormLinks((links) => links.filter((_, i) => i !== index));
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -42,12 +58,15 @@ export function PersonalInfoSection({ name, email, phone, location }: Props) {
         email: formEmail,
         phone: formPhone,
         location: formLocation,
+        contactLinks: formLinks,
       }),
     });
     setSaving(false);
     if (res.ok) {
       setIsEditing(false);
       startTransition(() => router.refresh());
+    } else if (res.status === 400) {
+      setError("Check your links — each needs a label and a valid URL.");
     } else {
       setError("Failed to save. Please try again.");
     }
@@ -108,6 +127,53 @@ export function PersonalInfoSection({ name, email, phone, location }: Props) {
               className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-neutral-600">Links</label>
+            <datalist id="contact-link-label-suggestions">
+              {LABEL_SUGGESTIONS.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+            <div className="space-y-2">
+              {formLinks.map((link, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={link.label}
+                    onChange={(e) => updateLink(i, { label: e.target.value })}
+                    list="contact-link-label-suggestions"
+                    placeholder="Label"
+                    required
+                    maxLength={40}
+                    className="w-28 shrink-0 rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <input
+                    type="text"
+                    value={link.url}
+                    onChange={(e) => updateLink(i, { url: e.target.value })}
+                    placeholder="linkedin.com/in/you"
+                    required
+                    className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeLink(i)}
+                    aria-label="Remove link"
+                    className="shrink-0 px-2 text-sm text-ink-soft hover:text-red-600 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormLinks((links) => [...links, { label: "", url: "" }])}
+              className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+            >
+              + Add link
+            </button>
+          </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-3">
             <button
@@ -143,6 +209,26 @@ export function PersonalInfoSection({ name, email, phone, location }: Props) {
           <div>
             <dt className="text-xs font-medium text-neutral-500">Location</dt>
             <dd className="mt-0.5 text-sm text-foreground">{location || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium text-neutral-500">Links</dt>
+            {contactLinks.length === 0 ? (
+              <dd className="mt-0.5 text-sm text-foreground">—</dd>
+            ) : (
+              contactLinks.map((link, i) => (
+                <dd key={i} className="mt-0.5 text-sm text-foreground">
+                  {link.label}:{" "}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary-hover transition-colors break-all"
+                  >
+                    {link.url}
+                  </a>
+                </dd>
+              ))
+            )}
           </div>
         </dl>
       )}
