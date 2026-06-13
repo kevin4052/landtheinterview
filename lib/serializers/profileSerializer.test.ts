@@ -16,6 +16,7 @@ function makeProfile(overrides: Partial<FullProfile> = {}): FullProfile {
     workExperience: [],
     education: [],
     skillCategories: [],
+    personalProjects: [],
     ...overrides,
   };
 }
@@ -58,6 +59,19 @@ function makeSkill(overrides: Partial<FullProfile["skillCategories"][number]> = 
     profileId: "p1",
     name: "Languages",
     skills: ["TypeScript", "Python"],
+    ...overrides,
+  };
+}
+
+function makeProject(overrides: Partial<FullProfile["personalProjects"][number]> = {}): FullProfile["personalProjects"][number] {
+  return {
+    id: "pp1",
+    tenantId: "tenant_123",
+    profileId: "p1",
+    title: "Resume Tailor",
+    url: "https://github.com/jane/resume-tailor",
+    bullets: ["Built an AI resume tool"],
+    createdAt: new Date("2024-02-01"),
     ...overrides,
   };
 }
@@ -211,6 +225,64 @@ describe("serializeProfileToResumeText", () => {
     });
     const result = serializeProfileToResumeText(profile);
     expect(result).not.toContain("SKILLS");
+  });
+
+  it("renders a project with url as 'Title | url' followed by bullets", () => {
+    const profile = makeProfile({
+      personalProjects: [makeProject()],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result).toContain(
+      "PROJECTS\nResume Tailor | https://github.com/jane/resume-tailor\n- Built an AI resume tool"
+    );
+  });
+
+  it("renders a project without url as bare title", () => {
+    const profile = makeProfile({
+      personalProjects: [makeProject({ url: null })],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result).toContain("PROJECTS\nResume Tailor\n- Built an AI resume tool");
+    expect(result).not.toContain("Resume Tailor |");
+  });
+
+  it("renders projects in given (creation) order", () => {
+    const profile = makeProfile({
+      personalProjects: [
+        makeProject({ id: "pp1", title: "First Project" }),
+        makeProject({ id: "pp2", title: "Second Project" }),
+      ],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.indexOf("First Project")).toBeLessThan(result.indexOf("Second Project"));
+  });
+
+  it("places PROJECTS between WORK EXPERIENCE and EDUCATION", () => {
+    const profile = makeProfile({
+      workExperience: [makeJob()],
+      personalProjects: [makeProject()],
+      education: [makeEdu()],
+      skillCategories: [makeSkill()],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result.indexOf("WORK EXPERIENCE")).toBeLessThan(result.indexOf("PROJECTS"));
+    expect(result.indexOf("PROJECTS")).toBeLessThan(result.indexOf("EDUCATION"));
+    expect(result.indexOf("EDUCATION")).toBeLessThan(result.indexOf("SKILLS"));
+  });
+
+  it("omits PROJECTS section when there are no projects", () => {
+    const profile = makeProfile({ workExperience: [makeJob()] });
+    const result = serializeProfileToResumeText(profile);
+    expect(result).not.toContain("PROJECTS");
+  });
+
+  it("handles a project with empty bullets without trailing blank lines", () => {
+    const profile = makeProfile({
+      personalProjects: [makeProject({ bullets: [], url: null })],
+    });
+    const result = serializeProfileToResumeText(profile);
+    expect(result).toContain("PROJECTS\nResume Tailor");
+    expect(result).not.toMatch(/^-\s*$/m);
   });
 
   it("includes work experience details like company, title, and bullets", () => {

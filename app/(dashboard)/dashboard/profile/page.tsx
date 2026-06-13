@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getProfile } from "@/lib/db/profile";
 import { PersonalInfoSection } from "./PersonalInfoSection";
 import { WorkExperienceSection } from "./WorkExperienceSection";
+import { PersonalProjectsSection } from "./PersonalProjectsSection";
 import { EducationSection } from "./EducationSection";
 import { SkillsSection } from "./SkillsSection";
 
@@ -43,6 +44,11 @@ export default async function ProfilePage() {
         </div>
         <div className="h-4 w-px bg-line-ink shrink-0" />
         <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-muted">Projects</span>
+          <span className="font-serif text-base font-medium text-ink">{profile.personalProjects.length}</span>
+        </div>
+        <div className="h-4 w-px bg-line-ink shrink-0" />
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-muted">Schools</span>
           <span className="font-serif text-base font-medium text-ink">{profile.education.length}</span>
         </div>
@@ -70,6 +76,7 @@ export default async function ProfilePage() {
         {/* right 2-col span: work experience + education */}
         <div className="col-span-2 space-y-5">
           <WorkExperienceSection initialEntries={sortedWorkExperience} />
+          <PersonalProjectsSection initialEntries={profile.personalProjects} />
           <EducationSection initialEntries={profile.education} />
         </div>
       </div>

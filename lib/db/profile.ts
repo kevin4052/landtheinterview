@@ -8,17 +8,20 @@ import {
   workExperience,
   education,
   skillCategories,
+  personalProjects,
 } from "@/lib/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 export type WorkExperience = InferSelectModel<typeof workExperience>;
 export type Education = InferSelectModel<typeof education>;
 export type SkillCategory = InferSelectModel<typeof skillCategories>;
+export type PersonalProject = InferSelectModel<typeof personalProjects>;
 
 export type FullProfile = InferSelectModel<typeof userProfiles> & {
   workExperience: WorkExperience[];
   education: Education[];
   skillCategories: SkillCategory[];
+  personalProjects: PersonalProject[];
 };
 
 // RLS on user_profiles filters to the current JWT user automatically.
@@ -29,6 +32,10 @@ export async function getProfile(): Promise<FullProfile | null> {
       workExperience: true,
       education: true,
       skillCategories: true,
+      // Personal Projects have no dates; creation order is the display order.
+      personalProjects: {
+        orderBy: (projects, { asc }) => [asc(projects.createdAt)],
+      },
     },
   });
   return profile ?? null;

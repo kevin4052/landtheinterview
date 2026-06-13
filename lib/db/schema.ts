@@ -139,6 +139,29 @@ export const skillCategories = pgTable("skill_categories", {
   }),
 ]);
 
+export const personalProjects = pgTable("personal_projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => userProfiles.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  url: text("url"),
+  bullets: text("bullets").array().notNull().default([]),
+  // Personal Projects carry no dates; created_at is the creation-order key.
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
+
 export const tailoredResumes = pgTable("tailored_resumes", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id")
@@ -179,6 +202,17 @@ export const userProfilesRelations = relations(
     workExperience: many(workExperience),
     education: many(education),
     skillCategories: many(skillCategories),
+    personalProjects: many(personalProjects),
+  })
+);
+
+export const personalProjectsRelations = relations(
+  personalProjects,
+  ({ one }) => ({
+    profile: one(userProfiles, {
+      fields: [personalProjects.profileId],
+      references: [userProfiles.id],
+    }),
   })
 );
 
