@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useProfileSection } from "./useProfileSection";
 import type { SkillCategoryEntry } from "./types";
 
 type Props = {
@@ -173,59 +173,15 @@ function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
 }
 
 export function SkillsSection({ initialCategories }: Props) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-
-  function refresh() {
-    startTransition(() => router.refresh());
-  }
-
-  async function handleAdd(payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch("/api/profile/skill-categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setIsAdding(false);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleUpdate(id: string, payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch(`/api/profile/skill-categories/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setEditingId(null);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleDelete(id: string): Promise<boolean> {
-    const res = await fetch(`/api/profile/skill-categories/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      refresh();
-      return true;
-    }
-    return false;
-  }
+  const section = useProfileSection<ReturnType<typeof formToPayload>>("skill-categories");
 
   return (
     <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
-        {!isAdding && (
+        {!section.isAdding && (
           <button
-            onClick={() => { setIsAdding(true); setEditingId(null); }}
+            onClick={section.startAdd}
             className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
           >
             + Add Category
@@ -234,32 +190,32 @@ export function SkillsSection({ initialCategories }: Props) {
       </div>
 
       <div className="space-y-4">
-        {isAdding && (
+        {section.isAdding && (
           <SkillForm
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
+            onSave={section.create}
+            onCancel={section.cancel}
           />
         )}
 
-        {initialCategories.length === 0 && !isAdding && (
+        {initialCategories.length === 0 && !section.isAdding && (
           <p className="text-sm text-neutral-500">No skill categories added yet.</p>
         )}
 
         {initialCategories.map((category) =>
-          editingId === category.id ? (
+          section.editingId === category.id ? (
             <div key={category.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
               <SkillForm
                 initialValues={category}
-                onSave={(payload) => handleUpdate(category.id, payload)}
-                onCancel={() => setEditingId(null)}
+                onSave={(payload) => section.update(category.id, payload)}
+                onCancel={section.cancel}
               />
             </div>
           ) : (
             <SkillCategoryItem
               key={category.id}
               category={category}
-              onEdit={() => { setEditingId(category.id); setIsAdding(false); }}
-              onDelete={() => handleDelete(category.id)}
+              onEdit={() => section.startEdit(category.id)}
+              onDelete={() => section.remove(category.id)}
             />
           )
         )}

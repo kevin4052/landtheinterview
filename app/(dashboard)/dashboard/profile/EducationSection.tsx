@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useProfileSection } from "./useProfileSection";
 import type { EducationEntry } from "./types";
 import { toMonthInput, formatMonth } from "./dateUtils";
 
@@ -227,59 +227,15 @@ function EduItem({ entry, onEdit, onDelete }: ItemProps) {
 }
 
 export function EducationSection({ initialEntries }: Props) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-
-  function refresh() {
-    startTransition(() => router.refresh());
-  }
-
-  async function handleAdd(payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch("/api/profile/education", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setIsAdding(false);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleUpdate(id: string, payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch(`/api/profile/education/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setEditingId(null);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleDelete(id: string): Promise<boolean> {
-    const res = await fetch(`/api/profile/education/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      refresh();
-      return true;
-    }
-    return false;
-  }
+  const section = useProfileSection<ReturnType<typeof formToPayload>>("education");
 
   return (
     <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
-        {!isAdding && (
+        {!section.isAdding && (
           <button
-            onClick={() => { setIsAdding(true); setEditingId(null); }}
+            onClick={section.startAdd}
             className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
           >
             + Add
@@ -288,32 +244,32 @@ export function EducationSection({ initialEntries }: Props) {
       </div>
 
       <div className="space-y-4">
-        {isAdding && (
+        {section.isAdding && (
           <EduForm
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
+            onSave={section.create}
+            onCancel={section.cancel}
           />
         )}
 
-        {initialEntries.length === 0 && !isAdding && (
+        {initialEntries.length === 0 && !section.isAdding && (
           <p className="text-sm text-neutral-500">No education added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
-          editingId === entry.id ? (
+          section.editingId === entry.id ? (
             <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
               <EduForm
                 initialValues={entry}
-                onSave={(payload) => handleUpdate(entry.id, payload)}
-                onCancel={() => setEditingId(null)}
+                onSave={(payload) => section.update(entry.id, payload)}
+                onCancel={section.cancel}
               />
             </div>
           ) : (
             <EduItem
               key={entry.id}
               entry={entry}
-              onEdit={() => { setEditingId(entry.id); setIsAdding(false); }}
-              onDelete={() => handleDelete(entry.id)}
+              onEdit={() => section.startEdit(entry.id)}
+              onDelete={() => section.remove(entry.id)}
             />
           )
         )}
