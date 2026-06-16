@@ -1,0 +1,11 @@
+# Self-service billing via the Stripe Customer Portal
+
+Subscription management — cancel, mid↔pro plan changes, payment-method updates, and invoice history — is delegated to the Stripe-hosted Customer Portal rather than built as custom in-app UI. In-app Checkout is reserved exclusively for the Free→paid transition: `checkout/route.ts` rejects any checkout from a Tenant not on the Free plan, so a second parallel subscription is structurally impossible. The "Manage billing" affordance (a `billingPortal.sessions.create` redirect) is shown only to paid tenants, since Free tenants have no Stripe Customer.
+
+Each Tenant has exactly one Stripe Customer for life, created lazily at first checkout and persisted as `stripeCustomerId`. The id is reused on every subsequent checkout and is **never cleared on downgrade** — so a Free→Mid→cancel→Mid Tenant keeps one Customer and one billing history.
+
+A failed payment does **not** revoke access. `invoice.payment_failed` fires on every Stripe dunning retry, not on final give-up, so the app ignores it for plan purposes and lets Stripe's Smart Retries own the grace window. The downgrade to Free happens only on `customer.subscription.deleted` — i.e. when Stripe exhausts retries and cancels. Dunning and receipt emails are sent by Stripe; the app owns no transactional email at launch.
+
+Account deletion cancels billing before destroying data: the `user.deleted` webhook cancels any active Stripe subscription **first**, then deletes the `tenants` row (FK cascade wipes the rest). If the Stripe cancel fails the handler returns non-2xx so Clerk retries — a Tenant is never deleted while a live subscription dangles.
+
+Rejected: custom billing UI (large surface, PCI burden, no early-stage payoff); eager Customer creation at tenant provisioning (pollutes Stripe with free-forever users and adds a failure mode to the `user.created` webhook); immediate downgrade on `payment_failed` (races Stripe's retry engine and causes downgrade/re-upgrade flapping). A Stripe webhook dedupe table was also rejected as unnecessary — every handler is an idempotent set-operation; the real residual risk is out-of-order delivery, mitigated by reading status off the event object rather than trusting event-type sequence.
