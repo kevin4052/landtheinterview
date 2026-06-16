@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { ensureTenant, profileIsComplete } from "@/lib/db/profile";
 import { parseMonthDate } from "@/lib/utils/date";
-import { ContactLinksSchema, normalizeContactUrl } from "@/lib/validators/contactLink.schema";
+import { ContactLinksSchema, projectUrlSchema } from "@/lib/validators/contactLink.schema";
 
 const MonthDateString = z
   .string()
@@ -21,19 +21,9 @@ const WorkExpSchema = z.object({
   bullets: z.array(z.string().min(1)),
 });
 
-// Same normalization the dashboard applies to Personal Project URLs.
-const ProjectUrlString = z.string().transform((value, ctx) => {
-  const normalized = normalizeContactUrl(value);
-  if (normalized === null) {
-    ctx.addIssue({ code: "custom", message: "Invalid URL" });
-    return z.NEVER;
-  }
-  return normalized;
-});
-
 const PersonalProjectSchema = z.object({
   title: z.string().min(1),
-  url: ProjectUrlString.optional(),
+  url: projectUrlSchema.optional(),
   bullets: z.array(z.string().min(1)),
 });
 

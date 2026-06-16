@@ -10,7 +10,7 @@ import {
   personalProjects,
 } from "@/lib/db/schema";
 import { parseMonthDate } from "@/lib/utils/date";
-import { normalizeContactUrl } from "@/lib/validators/contactLink.schema";
+import { projectUrlSchema } from "@/lib/validators/contactLink.schema";
 
 // Insert subqueries resolve the caller's Tenant and Profile from the JWT.
 // RLS independently rejects any row that doesn't belong to the caller, so
@@ -85,19 +85,6 @@ function defineSection(
   };
 }
 
-// Same normalization as Contact Links: scheme-less input becomes https,
-// anything that can't parse as an http(s) URL is rejected. Blank clears.
-const projectUrl = z.string().transform((value, ctx) => {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const normalized = normalizeContactUrl(trimmed);
-  if (normalized === null) {
-    ctx.addIssue({ code: "custom", message: "Invalid URL" });
-    return z.NEVER;
-  }
-  return normalized;
-});
-
 const SECTIONS = {
   "work-experience": defineSection(
     workExperience,
@@ -145,12 +132,12 @@ const SECTIONS = {
     personalProjects,
     z.object({
       title: z.string().min(1),
-      url: projectUrl.optional(),
+      url: projectUrlSchema.optional(),
       bullets: z.array(z.string().min(1)),
     }),
     z.object({
       title: z.string().min(1).optional(),
-      url: projectUrl.nullable().optional(),
+      url: projectUrlSchema.nullable().optional(),
       bullets: z.array(z.string().min(1)).optional(),
     })
   ),

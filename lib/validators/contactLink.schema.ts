@@ -33,3 +33,16 @@ export const ContactLinkSchema = z.object({
 });
 
 export const ContactLinksSchema = z.array(ContactLinkSchema);
+
+// Personal Project URL: blank/whitespace clears the field (null), otherwise
+// normalize like Contact Links and reject anything that can't parse as http(s).
+export const projectUrlSchema = z.string().transform((value, ctx) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const normalized = normalizeContactUrl(trimmed);
+  if (normalized === null) {
+    ctx.addIssue({ code: "custom", message: "Invalid URL" });
+    return z.NEVER;
+  }
+  return normalized;
+});

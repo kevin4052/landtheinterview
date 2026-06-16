@@ -3,6 +3,7 @@ import {
   normalizeContactUrl,
   ContactLinkSchema,
   ContactLinksSchema,
+  projectUrlSchema,
 } from "./contactLink.schema";
 
 describe("normalizeContactUrl", () => {
@@ -90,6 +91,32 @@ describe("ContactLinkSchema", () => {
       url: "not a url",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("projectUrlSchema", () => {
+  it("treats blank input as null", () => {
+    const result = projectUrlSchema.safeParse("");
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toBeNull();
+  });
+
+  it("treats whitespace-only input as null", () => {
+    const result = projectUrlSchema.safeParse("   ");
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toBeNull();
+  });
+
+  it("normalizes scheme-less input to https", () => {
+    const result = projectUrlSchema.safeParse("github.com/jane/project");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toBe("https://github.com/jane/project");
+    }
+  });
+
+  it("rejects unparseable input", () => {
+    expect(projectUrlSchema.safeParse("not a url").success).toBe(false);
   });
 });
 
