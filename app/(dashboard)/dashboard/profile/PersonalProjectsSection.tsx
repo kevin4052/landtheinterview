@@ -66,7 +66,7 @@ function ProjectForm({ initialValues, onSave, onCancel }: ProjectFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">Title</label>
+        <label className="block text-xs font-medium text-muted-strong">Title</label>
         <input
           type="text"
           value={form.title}
@@ -78,7 +78,7 @@ function ProjectForm({ initialValues, onSave, onCancel }: ProjectFormProps) {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">URL (optional)</label>
+        <label className="block text-xs font-medium text-muted-strong">URL (optional)</label>
         <input
           type="text"
           value={form.url}
@@ -89,7 +89,7 @@ function ProjectForm({ initialValues, onSave, onCancel }: ProjectFormProps) {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">Bullets</label>
+        <label className="block text-xs font-medium text-muted-strong">Bullets</label>
         <BulletsInput
           bullets={form.bullets}
           onChange={(bullets) => set("bullets", bullets)}
@@ -139,7 +139,7 @@ function ProjectItem({ entry, onEdit, onDelete }: ItemProps) {
   }
 
   return (
-    <div className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+    <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{entry.title}</p>
@@ -156,8 +156,8 @@ function ProjectItem({ entry, onEdit, onDelete }: ItemProps) {
           {entry.bullets.length > 0 && (
             <ul className="mt-2 space-y-1">
               {entry.bullets.map((b, i) => (
-                <li key={i} className="flex gap-2 text-xs text-neutral-600">
-                  <span className="mt-0.5 shrink-0 text-neutral-400">•</span>
+                <li key={i} className="flex gap-2 text-xs text-muted-strong">
+                  <span className="mt-0.5 shrink-0 text-muted-soft">•</span>
                   <span>{b}</span>
                 </li>
               ))}
@@ -215,12 +215,12 @@ export function PersonalProjectsSection({ initialEntries }: Props) {
         )}
 
         {initialEntries.length === 0 && !section.isAdding && (
-          <p className="text-sm text-neutral-500">No personal projects added yet.</p>
+          <p className="text-sm text-muted">No personal projects added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
           section.editingId === entry.id ? (
-            <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
               <ProjectForm
                 initialValues={entry}
                 onSave={(payload) => section.update(entry.id, payload)}

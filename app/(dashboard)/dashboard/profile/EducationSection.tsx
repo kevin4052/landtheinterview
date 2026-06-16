@@ -78,7 +78,7 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">School</label>
+        <label className="block text-xs font-medium text-muted-strong">School</label>
         <input
           type="text"
           value={form.school}
@@ -91,7 +91,7 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Degree</label>
+          <label className="block text-xs font-medium text-muted-strong">Degree</label>
           <input
             type="text"
             value={form.degree}
@@ -102,7 +102,7 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Field of Study</label>
+          <label className="block text-xs font-medium text-muted-strong">Field of Study</label>
           <input
             type="text"
             value={form.fieldOfStudy}
@@ -116,7 +116,7 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Start Date</label>
+          <label className="block text-xs font-medium text-muted-strong">Start Date</label>
           <input
             type="month"
             value={form.startDate}
@@ -126,23 +126,23 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">End Date</label>
+          <label className="block text-xs font-medium text-muted-strong">End Date</label>
           <input
             type="month"
             value={form.endDate}
             onChange={(e) => set("endDate", e.target.value)}
             disabled={form.isCurrent}
-            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-neutral-100 disabled:text-neutral-400"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-paper-2 disabled:text-muted-soft"
           />
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-sm text-ink-soft">
         <input
           type="checkbox"
           checked={form.isCurrent}
           onChange={(e) => set("isCurrent", e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 text-primary"
+          className="h-4 w-4 rounded border-line-ink text-primary"
         />
         Currently enrolled
       </label>
@@ -192,14 +192,14 @@ function EduItem({ entry, onEdit, onDelete }: ItemProps) {
   }`;
 
   return (
-    <div className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+    <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{entry.school}</p>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted-strong">
             {entry.degree} · {entry.fieldOfStudy}
           </p>
-          <p className="mt-0.5 text-xs text-neutral-500">{dateRange}</p>
+          <p className="mt-0.5 text-xs text-muted">{dateRange}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <div className="flex gap-3">
@@ -252,12 +252,12 @@ export function EducationSection({ initialEntries }: Props) {
         )}
 
         {initialEntries.length === 0 && !section.isAdding && (
-          <p className="text-sm text-neutral-500">No education added yet.</p>
+          <p className="text-sm text-muted">No education added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
           section.editingId === entry.id ? (
-            <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
               <EduForm
                 initialValues={entry}
                 onSave={(payload) => section.update(entry.id, payload)}

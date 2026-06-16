@@ -84,7 +84,7 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
     <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Company</label>
+          <label className="block text-xs font-medium text-muted-strong">Company</label>
           <input
             type="text"
             value={form.company}
@@ -95,7 +95,7 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Job Title</label>
+          <label className="block text-xs font-medium text-muted-strong">Job Title</label>
           <input
             type="text"
             value={form.title}
@@ -108,7 +108,7 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">Location (optional)</label>
+        <label className="block text-xs font-medium text-muted-strong">Location (optional)</label>
         <input
           type="text"
           value={form.location}
@@ -120,7 +120,7 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Start Date</label>
+          <label className="block text-xs font-medium text-muted-strong">Start Date</label>
           <input
             type="month"
             value={form.startDate}
@@ -130,29 +130,29 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">End Date</label>
+          <label className="block text-xs font-medium text-muted-strong">End Date</label>
           <input
             type="month"
             value={form.endDate}
             onChange={(e) => set("endDate", e.target.value)}
             disabled={form.isCurrent}
-            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-neutral-100 disabled:text-neutral-400"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-paper-2 disabled:text-muted-soft"
           />
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-sm text-ink-soft">
         <input
           type="checkbox"
           checked={form.isCurrent}
           onChange={(e) => set("isCurrent", e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 text-primary"
+          className="h-4 w-4 rounded border-line-ink text-primary"
         />
         Currently working here
       </label>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">Bullets</label>
+        <label className="block text-xs font-medium text-muted-strong">Bullets</label>
         <BulletsInput
           bullets={form.bullets}
           onChange={(bullets) => set("bullets", bullets)}
@@ -206,20 +206,20 @@ function WorkExpItem({ entry, onEdit, onDelete }: ItemProps) {
   }`;
 
   return (
-    <div className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+    <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{entry.title}</p>
-          <p className="text-sm text-neutral-600">{entry.company}</p>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <p className="text-sm text-muted-strong">{entry.company}</p>
+          <p className="mt-0.5 text-xs text-muted">
             {dateRange}
             {entry.location ? ` · ${entry.location}` : ""}
           </p>
           {entry.bullets.length > 0 && (
             <ul className="mt-2 space-y-1">
               {entry.bullets.map((b, i) => (
-                <li key={i} className="flex gap-2 text-xs text-neutral-600">
-                  <span className="mt-0.5 shrink-0 text-neutral-400">•</span>
+                <li key={i} className="flex gap-2 text-xs text-muted-strong">
+                  <span className="mt-0.5 shrink-0 text-muted-soft">•</span>
                   <span>{b}</span>
                 </li>
               ))}
@@ -277,12 +277,12 @@ export function WorkExperienceSection({ initialEntries }: Props) {
         )}
 
         {initialEntries.length === 0 && !section.isAdding && (
-          <p className="text-sm text-neutral-500">No work experience added yet.</p>
+          <p className="text-sm text-muted">No work experience added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
           section.editingId === entry.id ? (
-            <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
               <WorkExpForm
                 initialValues={entry}
                 onSave={(payload) => section.update(entry.id, payload)}

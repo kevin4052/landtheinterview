@@ -345,7 +345,7 @@ export function OnboardingForm({
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Work experience</h2>
-            <p className="text-sm text-neutral-500">Add at least one position.</p>
+            <p className="text-sm text-muted">Add at least one position.</p>
 
             {workExps.length > 0 && (
               <ul className="space-y-2">
@@ -358,13 +358,13 @@ export function OnboardingForm({
                       <p className="text-sm font-medium text-foreground truncate">
                         {e.title} · {e.company}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-muted">
                         {e.startDate} — {e.isCurrent ? "Present" : e.endDate || "—"}
                       </p>
                     </div>
                     <button
                       onClick={() => setWorkExps((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -415,7 +415,7 @@ export function OnboardingForm({
                   />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
                 <input
                   type="checkbox"
                   checked={wDraft.isCurrent}
@@ -459,7 +459,7 @@ export function OnboardingForm({
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Personal projects</h2>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted">
               Add self-directed projects you want on your resume. You can skip this step.
             </p>
 
@@ -472,11 +472,11 @@ export function OnboardingForm({
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{p.title}</p>
-                      {p.url && <p className="text-xs text-neutral-500 truncate">{p.url}</p>}
+                      {p.url && <p className="text-xs text-muted truncate">{p.url}</p>}
                     </div>
                     <button
                       onClick={() => setProjects((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -528,7 +528,7 @@ export function OnboardingForm({
         {step === 4 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted">
               Group your skills by category (e.g. Languages, Frameworks, Tools).
             </p>
 
@@ -541,11 +541,11 @@ export function OnboardingForm({
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{c.categoryName}</p>
-                      <p className="text-xs text-neutral-500">{c.skills.join(", ")}</p>
+                      <p className="text-xs text-muted">{c.skills.join(", ")}</p>
                     </div>
                     <button
                       onClick={() => setSkillCats((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -595,7 +595,7 @@ export function OnboardingForm({
                   onBlur={() => addSkillToCategory(skillInput)}
                   placeholder="Type a skill and press Enter"
                 />
-                <p className="text-xs text-neutral-400 mt-1">Press Enter or comma to add a skill</p>
+                <p className="text-xs text-muted-soft mt-1">Press Enter or comma to add a skill</p>
               </div>
               <button
                 onClick={addSkillCat}
@@ -612,7 +612,7 @@ export function OnboardingForm({
         {step === 5 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
-            <p className="text-sm text-neutral-500">Add your educational background.</p>
+            <p className="text-sm text-muted">Add your educational background.</p>
 
             {educations.length > 0 && (
               <ul className="space-y-2">
@@ -625,11 +625,11 @@ export function OnboardingForm({
                       <p className="text-sm font-medium text-foreground truncate">
                         {e.degree} in {e.fieldOfStudy}
                       </p>
-                      <p className="text-xs text-neutral-500">{e.school}</p>
+                      <p className="text-xs text-muted">{e.school}</p>
                     </div>
                     <button
                       onClick={() => setEducations((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -689,7 +689,7 @@ export function OnboardingForm({
                   />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
                 <input
                   type="checkbox"
                   checked={eDraft.isCurrent}
@@ -714,7 +714,7 @@ export function OnboardingForm({
         {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-100">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-paper-2">
           {step > 1 ? (
             <button onClick={() => setStep((s) => s - 1)} className={ghostBtn}>
               Back

@@ -89,7 +89,7 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
       {isEditing ? (
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Name</label>
+            <label className="block text-xs font-medium text-muted-strong">Name</label>
             <input
               type="text"
               value={formName}
@@ -99,7 +99,7 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Email</label>
+            <label className="block text-xs font-medium text-muted-strong">Email</label>
             <input
               type="email"
               value={formEmail}
@@ -109,7 +109,7 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Phone</label>
+            <label className="block text-xs font-medium text-muted-strong">Phone</label>
             <input
               type="tel"
               value={formPhone}
@@ -118,7 +118,7 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Location</label>
+            <label className="block text-xs font-medium text-muted-strong">Location</label>
             <input
               type="text"
               value={formLocation}
@@ -128,7 +128,7 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Links</label>
+            <label className="block text-xs font-medium text-muted-strong">Links</label>
             <datalist id="contact-link-label-suggestions">
               {LABEL_SUGGESTIONS.map((s) => (
                 <option key={s} value={s} />
@@ -195,23 +195,23 @@ export function PersonalInfoSection({ name, email, phone, location, contactLinks
       ) : (
         <dl className="space-y-3">
           <div>
-            <dt className="text-xs font-medium text-neutral-500">Name</dt>
+            <dt className="text-xs font-medium text-muted">Name</dt>
             <dd className="mt-0.5 text-sm text-foreground">{name}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-neutral-500">Email</dt>
+            <dt className="text-xs font-medium text-muted">Email</dt>
             <dd className="mt-0.5 text-sm text-foreground">{email}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-neutral-500">Phone</dt>
+            <dt className="text-xs font-medium text-muted">Phone</dt>
             <dd className="mt-0.5 text-sm text-foreground">{phone || "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-neutral-500">Location</dt>
+            <dt className="text-xs font-medium text-muted">Location</dt>
             <dd className="mt-0.5 text-sm text-foreground">{location || "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-neutral-500">Links</dt>
+            <dt className="text-xs font-medium text-muted">Links</dt>
             {contactLinks.length === 0 ? (
               <dd className="mt-0.5 text-sm text-foreground">—</dd>
             ) : (

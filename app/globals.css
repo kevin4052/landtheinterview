@@ -10,6 +10,8 @@
   --ink: #1c2218;
   --ink-soft: #41483a;
   --muted: #7c8270;
+  --muted-soft: #9aa08e; /* lighter sage — placeholder/disabled/decorative text (was neutral-400) */
+  --muted-strong: #5f6554; /* deeper sage between muted and ink-soft — form labels (was neutral-600) */
   --forest: #1f4d36;
   --forest-2: #2c6347;
   --moss: #4f7a4a;
@@ -34,6 +36,8 @@
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+  --color-muted-strong: var(--muted-strong);
   --color-forest: var(--forest);
   --color-forest-2: var(--forest-2);
   --color-moss: var(--moss);
@@ -45,18 +49,6 @@
 }
 
 @theme {
-  /* warm the neutral scale so gray utilities sit on the paper palette */
-  --color-neutral-50: #faf8f2;
-  --color-neutral-100: #efe9dd;
-  --color-neutral-200: #ddd6c6;
-  --color-neutral-300: #cdc6b4;
-  --color-neutral-400: #9aa08e;
-  --color-neutral-500: #7c8270;
-  --color-neutral-600: #5f6554;
-  --color-neutral-700: #41483a;
-  --color-neutral-800: #2a3124;
-  --color-neutral-900: #1c2218;
-
   --animate-marquee: marquee 32s linear infinite;
   @keyframes marquee {
     to {

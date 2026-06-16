@@ -103,7 +103,7 @@ export function BulletsInput({
               type="button"
               onClick={() => handleRemove(index)}
               aria-label="Remove bullet"
-              className="mt-2 shrink-0 text-neutral-400 hover:text-red-500 transition-colors"
+              className="mt-2 shrink-0 text-muted-soft hover:text-red-500 transition-colors"
             >
               ×
             </button>
