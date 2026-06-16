@@ -90,6 +90,10 @@ _Avoid_: Credits, ops, quota, limit
 > **Dev:** "What if the user updates their Profile between two Tailor operations — do old records become stale?"
 > **Domain expert:** "No — the Tailor Log stores the serialized Resume text at the time of the operation. The Profile is the live source of truth; the Tailor Log is the audit trail."
 
+## Framework notes
+
+- In Next.js 16 the `middleware.ts` file was renamed to `proxy.ts`, per the Vercel documentation.
+
 ## Flagged ambiguities
 
 - "results" was used in the spec to mean both the `/results/[id]` route and the Tailored Resume text shown inline — resolved: Phase 3 shows the Tailored Resume inline on the dashboard; the `/dashboard/history/[id]` route is the detail page.
