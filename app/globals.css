@@ -3,10 +3,26 @@
 @custom-variant dark (&:where(.force-dark));
 
 :root {
-  --background: #F8F7F4;
-  --foreground: #171717;
-  --primary: #4C6EF5;
-  --primary-hover: #3B5BDB;
+  /* Editorial palette — forest green on warm paper */
+  --paper: #f6f3ec;
+  --paper-2: #efe9dd;
+  --card: #fbf9f3;
+  --ink: #1c2218;
+  --ink-soft: #41483a;
+  --muted: #7c8270;
+  --muted-soft: #9aa08e; /* lighter sage — placeholder/disabled/decorative text (was neutral-400) */
+  --muted-strong: #5f6554; /* deeper sage between muted and ink-soft — form labels (was neutral-600) */
+  --forest: #1f4d36;
+  --forest-2: #2c6347;
+  --moss: #4f7a4a;
+  --line: #ddd6c6;
+  --line-ink: #cdc6b4;
+  --gold: #b08440;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --primary: var(--forest);
+  --primary-hover: var(--ink);
 }
 
 @theme inline {
@@ -14,12 +30,68 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+  --color-muted-strong: var(--muted-strong);
+  --color-forest: var(--forest);
+  --color-forest-2: var(--forest-2);
+  --color-moss: var(--moss);
+  --color-line: var(--line);
+  --color-line-ink: var(--line-ink);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-archivo);
+  --font-serif: var(--font-newsreader);
+}
+
+@theme {
+  --animate-marquee: marquee 32s linear infinite;
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--forest);
+  color: var(--paper);
+}
+
+/* paper grain texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* scroll-triggered reveal — paired with the Reveal client component */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
 }

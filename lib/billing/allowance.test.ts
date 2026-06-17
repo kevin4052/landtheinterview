@@ -128,3 +128,44 @@ describe("consumeAllowance", () => {
     expect(db.update).not.toHaveBeenCalled();
   });
 });
+
+describe("release (compensating undo)", () => {
+  it("Free reservation: release issues a second update (decrements lifetime_ops_used)", async () => {
+    const db = buildMockDb(makeTenant({ plan: "free", lifetimeOpsUsed: 2 }));
+    vi.mocked(getDb).mockResolvedValue(db as never);
+
+    const result = await consumeAllowance();
+    expect(result.allowed).toBe(true);
+    if (!result.allowed) return;
+
+    expect(db.update).toHaveBeenCalledOnce(); // the reserve
+    await result.release();
+    expect(db.update).toHaveBeenCalledTimes(2); // reserve + release
+  });
+
+  it("Mid reservation: release issues a second update (decrements monthly_ops_used)", async () => {
+    const futureEnd = new Date(Date.now() + 1_000_000_000);
+    const db = buildMockDb(makeTenant({ plan: "mid", monthlyOpsUsed: 5, currentPeriodEnd: futureEnd }));
+    vi.mocked(getDb).mockResolvedValue(db as never);
+
+    const result = await consumeAllowance();
+    expect(result.allowed).toBe(true);
+    if (!result.allowed) return;
+
+    expect(db.update).toHaveBeenCalledOnce();
+    await result.release();
+    expect(db.update).toHaveBeenCalledTimes(2);
+  });
+
+  it("Pro reservation: release is a no-op, issues no update", async () => {
+    const db = buildMockDb(makeTenant({ plan: "pro" }));
+    vi.mocked(getDb).mockResolvedValue(db as never);
+
+    const result = await consumeAllowance();
+    expect(result.allowed).toBe(true);
+    if (!result.allowed) return;
+
+    await result.release();
+    expect(db.update).not.toHaveBeenCalled();
+  });
+});

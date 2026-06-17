@@ -3,6 +3,7 @@ import type { FullProfile } from "@/lib/db/profile";
 type WorkExp = FullProfile["workExperience"][number];
 type Education = FullProfile["education"][number];
 type SkillCat = FullProfile["skillCategories"][number];
+type Project = FullProfile["personalProjects"][number];
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -30,6 +31,17 @@ function serializeWorkExperience(entries: WorkExp[]): string {
     .join("\n\n");
 }
 
+// Entries arrive in creation order from getProfile and are not re-sorted here.
+function serializePersonalProjects(entries: Project[]): string {
+  return entries
+    .map((entry) => {
+      const header = entry.url ? `${entry.title} | ${entry.url}` : entry.title;
+      const bullets = entry.bullets.map((b) => `- ${b}`).join("\n");
+      return [header, bullets].filter(Boolean).join("\n");
+    })
+    .join("\n\n");
+}
+
 function serializeEducation(entries: Education[]): string {
   return entries
     .map((entry) => {
@@ -46,11 +58,23 @@ function serializeSkillCategories(entries: SkillCat[]): string {
 export function serializeProfileToResumeText(profile: FullProfile): string {
   const sections: string[] = [];
 
-  sections.push(profile.name);
-  sections.push(profile.email);
+  const contact = [
+    profile.name,
+    profile.email,
+    profile.phone,
+    profile.location,
+    ...profile.contactLinks.map((link) => `${link.label}: ${link.url}`),
+  ]
+    .filter(Boolean)
+    .join("\n");
+  sections.push(contact);
 
   if (profile.workExperience.length > 0) {
     sections.push("WORK EXPERIENCE\n" + serializeWorkExperience(profile.workExperience));
+  }
+
+  if (profile.personalProjects.length > 0) {
+    sections.push("PROJECTS\n" + serializePersonalProjects(profile.personalProjects));
   }
 
   if (profile.education.length > 0) {

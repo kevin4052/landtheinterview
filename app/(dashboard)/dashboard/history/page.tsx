@@ -27,29 +27,29 @@ export default async function HistoryPage({
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold">Resume History</h1>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-ink">Résumé History</h1>
         <Link
           href="/dashboard"
-          className="text-sm font-medium px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+          className="rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink"
         >
-          New Resume
+          New Résumé
         </Link>
       </div>
 
       {dbError ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-[2px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Unable to load your resume history. Please try refreshing the page. If the problem persists, the database may be temporarily unavailable.
         </div>
       ) : logs.length === 0 ? (
-        <p className="text-neutral-500 text-sm">
-          No tailored resumes yet.{" "}
+        <p className="text-muted text-sm">
+          No tailored résumés yet.{" "}
           <Link href="/dashboard" className="underline">
             Create your first one.
           </Link>
         </p>
       ) : (
         <>
-          <ul className="divide-y divide-neutral-200">
+          <ul className="divide-y divide-line">
             {logs.map((r) => (
               <ResumeHistoryItem
                 key={r.id}
@@ -71,20 +71,20 @@ export default async function HistoryPage({
               {page > 1 ? (
                 <Link
                   href={`/dashboard/history?page=${page - 1}`}
-                  className="px-3 py-1.5 rounded border border-neutral-200 hover:border-neutral-400 transition-colors"
+                  className="rounded-[2px] border border-line-ink px-3 py-1.5 transition-colors hover:border-forest hover:text-forest"
                 >
                   ← Previous
                 </Link>
               ) : (
                 <span />
               )}
-              <span className="text-neutral-500">
+              <span className="font-serif italic text-muted">
                 Page {page} of {totalPages}
               </span>
               {page < totalPages ? (
                 <Link
                   href={`/dashboard/history?page=${page + 1}`}
-                  className="px-3 py-1.5 rounded border border-neutral-200 hover:border-neutral-400 transition-colors"
+                  className="rounded-[2px] border border-line-ink px-3 py-1.5 transition-colors hover:border-forest hover:text-forest"
                 >
                   Next →
                 </Link>

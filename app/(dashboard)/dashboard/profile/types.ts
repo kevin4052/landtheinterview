@@ -21,6 +21,15 @@ export type EducationEntry = {
   isCurrent: boolean;
 };
 
+export type PersonalProjectEntry = {
+  id: string;
+  profileId: string;
+  title: string;
+  url: string | null;
+  bullets: string[];
+  createdAt: Date;
+};
+
 export type SkillCategoryEntry = {
   id: string;
   profileId: string;

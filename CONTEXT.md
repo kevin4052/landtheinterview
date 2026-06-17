@@ -5,12 +5,24 @@ A web app that tailors a user's resume to a specific job posting using AI, drawi
 ## Language
 
 **User Profile**:
-The persistent record of a user's career data — name, contact email, work experience, education, and skills. Created at onboarding and editable at any time. The source of truth for all Tailor operations.
+The persistent record of a user's career data — name, contact email, optional phone and location, Contact Links, work experience, education, skills, and personal projects. Created at onboarding and editable at any time. The source of truth for all Tailor operations.
 _Avoid_: resume, CV, profile data
 
+**Contact Link**:
+An ordered label-and-URL pair on a User Profile pointing to an external presence (e.g. LinkedIn, GitHub, portfolio). Labels are freeform; URLs are normalized to https on save. Contact Links are profile fields, not a Profile Section — they save with Personal Info and have no per-row lifecycle.
+_Avoid_: social link, social, handle
+
 **Work Experience**:
-A single job entry within a User Profile — company, title, start/end dates, isCurrent flag, optional location, and bullet points.
+A single job entry within a User Profile — company, title, start/end dates, isCurrent flag, optional location, and Bullets.
 _Avoid_: job, role, position
+
+**Bullet**:
+A single line of achievement text within a Work Experience or Personal Project. Always exactly one line — a Bullet never contains line breaks. Bullets are ordered, and the order is meaningful.
+_Avoid_: bullet point, accomplishment, highlight, line item
+
+**Personal Project**:
+A self-directed project entry within a User Profile — title, ordered Bullets, and an optional URL. Carries no dates; Personal Projects appear in creation order.
+_Avoid_: project, side project, portfolio item
 
 **Education**:
 An academic entry within a User Profile — school, degree, field of study, and dates.
@@ -21,7 +33,7 @@ A named group of skills within a User Profile (e.g. "Languages", "Frameworks").
 _Avoid_: skill set, skill group
 
 **Profile Section**:
-The umbrella term for the repeatable, independently-editable parts of a User Profile — a Work Experience, an Education, or a Skill Category. Every Profile Section shares one lifecycle (create, update, delete) and the same Tenant-scoped ownership; kinds differ only in their fields. CRUD on any kind flows through a single seam keyed by the kind.
+The umbrella term for the repeatable, independently-editable parts of a User Profile — a Work Experience, an Education, a Skill Category, or a Personal Project. Every Profile Section shares one lifecycle (create, update, delete) and the same Tenant-scoped ownership; kinds differ only in their fields. CRUD on any kind flows through a single seam keyed by the kind.
 _Avoid_: section, entry, sub-resource, record
 
 **Resume**:
@@ -37,8 +49,12 @@ AI-generated resume text that rewrites the Resume to match a specific Job Postin
 _Avoid_: Optimized resume, rewritten resume, output
 
 **Tailor**:
-The core operation — producing a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
+The core AI call — producing a Tailored Resume from the AI model given a Resume and Job Posting in a single call.
 _Avoid_: Generate, optimize, process
+
+**Tailor Operation**:
+The full guarded action behind a single tailor request: validate the Job Posting input, decrement the Tenant's Tailor Allowance, run the Tailor, and record a Tailor Log. Distinct from **Tailor**, which is only the AI call within it. The Allowance is decremented _before_ the Tailor runs and _released_ if the Tailor fails, so a failed operation never spends Allowance.
+_Avoid_: tailor request, tailor flow, generate
 
 **Tailor Log**:
 A persisted DB record of a completed Tailor operation. Stores the serialized Resume text, Job Posting text, and Tailored Resume text for the user's history and internal audit.
@@ -61,10 +77,10 @@ _Avoid_: Credits, ops, quota, limit
 ## Relationships
 
 - A **User Profile** is serialized into a **Resume** text before being passed to a **Tailor** operation
-- A **Tailor** operation takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
-- A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor** operation
+- A **Tailor Operation** takes one **Resume** and one **Job Posting** and produces one **Tailored Resume**
+- A **Tailor Log** records the Resume text, Job Posting text, and Tailored Resume text of a completed **Tailor Operation**
 - A **Tenant** owns one **User Profile**, zero or more **Tailor Logs**, and one **Subscription Plan**
-- A **Tailor** operation is only permitted if the Tenant's **Tailor Allowance** is not exhausted
+- A **Tailor Operation** is only permitted if the Tenant's **Tailor Allowance** is not exhausted; a failed Tailor releases the decrement
 
 ## Example dialogue
 
@@ -73,6 +89,10 @@ _Avoid_: Credits, ops, quota, limit
 
 > **Dev:** "What if the user updates their Profile between two Tailor operations — do old records become stale?"
 > **Domain expert:** "No — the Tailor Log stores the serialized Resume text at the time of the operation. The Profile is the live source of truth; the Tailor Log is the audit trail."
+
+## Framework notes
+
+- In Next.js 16 the `middleware.ts` file was renamed to `proxy.ts`, per the Vercel documentation.
 
 ## Flagged ambiguities
 

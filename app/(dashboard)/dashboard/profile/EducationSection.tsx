@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useProfileSection } from "./useProfileSection";
 import type { EducationEntry } from "./types";
 import { toMonthInput, formatMonth } from "./dateUtils";
 
@@ -76,73 +76,73 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">School</label>
+        <label className="block text-xs font-medium text-muted-strong">School</label>
         <input
           type="text"
           value={form.school}
           onChange={(e) => set("school", e.target.value)}
           required
           placeholder="University of Texas at Austin"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Degree</label>
+          <label className="block text-xs font-medium text-muted-strong">Degree</label>
           <input
             type="text"
             value={form.degree}
             onChange={(e) => set("degree", e.target.value)}
             required
             placeholder="Bachelor of Science"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Field of Study</label>
+          <label className="block text-xs font-medium text-muted-strong">Field of Study</label>
           <input
             type="text"
             value={form.fieldOfStudy}
             onChange={(e) => set("fieldOfStudy", e.target.value)}
             required
             placeholder="Computer Science"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Start Date</label>
+          <label className="block text-xs font-medium text-muted-strong">Start Date</label>
           <input
             type="month"
             value={form.startDate}
             onChange={(e) => set("startDate", e.target.value)}
             required
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">End Date</label>
+          <label className="block text-xs font-medium text-muted-strong">End Date</label>
           <input
             type="month"
             value={form.endDate}
             onChange={(e) => set("endDate", e.target.value)}
             disabled={form.isCurrent}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-neutral-100 disabled:text-neutral-400"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-paper-2 disabled:text-muted-soft"
           />
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-sm text-ink-soft">
         <input
           type="checkbox"
           checked={form.isCurrent}
           onChange={(e) => set("isCurrent", e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 text-primary"
+          className="h-4 w-4 rounded border-line-ink text-primary"
         />
         Currently enrolled
       </label>
@@ -153,14 +153,14 @@ function EduForm({ initialValues, onSave, onCancel }: EduFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-60"
+          className="rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:text-foreground transition-colors"
+          className="rounded-[2px] px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
         >
           Cancel
         </button>
@@ -192,14 +192,14 @@ function EduItem({ entry, onEdit, onDelete }: ItemProps) {
   }`;
 
   return (
-    <div className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+    <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{entry.school}</p>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted-strong">
             {entry.degree} · {entry.fieldOfStudy}
           </p>
-          <p className="mt-0.5 text-xs text-neutral-500">{dateRange}</p>
+          <p className="mt-0.5 text-xs text-muted">{dateRange}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <div className="flex gap-3">
@@ -227,59 +227,15 @@ function EduItem({ entry, onEdit, onDelete }: ItemProps) {
 }
 
 export function EducationSection({ initialEntries }: Props) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-
-  function refresh() {
-    startTransition(() => router.refresh());
-  }
-
-  async function handleAdd(payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch("/api/profile/education", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setIsAdding(false);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleUpdate(id: string, payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch(`/api/profile/education/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setEditingId(null);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleDelete(id: string): Promise<boolean> {
-    const res = await fetch(`/api/profile/education/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      refresh();
-      return true;
-    }
-    return false;
-  }
+  const section = useProfileSection<ReturnType<typeof formToPayload>>("education");
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
+    <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Education</h2>
-        {!isAdding && (
+        <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
+        {!section.isAdding && (
           <button
-            onClick={() => { setIsAdding(true); setEditingId(null); }}
+            onClick={section.startAdd}
             className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
           >
             + Add
@@ -288,32 +244,32 @@ export function EducationSection({ initialEntries }: Props) {
       </div>
 
       <div className="space-y-4">
-        {isAdding && (
+        {section.isAdding && (
           <EduForm
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
+            onSave={section.create}
+            onCancel={section.cancel}
           />
         )}
 
-        {initialEntries.length === 0 && !isAdding && (
-          <p className="text-sm text-neutral-500">No education added yet.</p>
+        {initialEntries.length === 0 && !section.isAdding && (
+          <p className="text-sm text-muted">No education added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
-          editingId === entry.id ? (
-            <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+          section.editingId === entry.id ? (
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
               <EduForm
                 initialValues={entry}
-                onSave={(payload) => handleUpdate(entry.id, payload)}
-                onCancel={() => setEditingId(null)}
+                onSave={(payload) => section.update(entry.id, payload)}
+                onCancel={section.cancel}
               />
             </div>
           ) : (
             <EduItem
               key={entry.id}
               entry={entry}
-              onEdit={() => { setEditingId(entry.id); setIsAdding(false); }}
-              onDelete={() => handleDelete(entry.id)}
+              onEdit={() => section.startEdit(entry.id)}
+              onDelete={() => section.remove(entry.id)}
             />
           )
         )}

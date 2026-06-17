@@ -68,20 +68,20 @@ export function ResumeResultPanel({ resume }: { resume: ResumeJSON }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3 gap-4 flex-wrap">
-        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
-          Tailored Resume
+        <h2 className="font-serif text-xl font-medium text-ink">
+          Tailored Résumé
         </h2>
         <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={handleCopy}
-            className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="cursor-pointer text-sm text-muted transition-colors hover:text-ink"
           >
             Copy
           </button>
           <select
             value={template}
             onChange={(e) => setTemplate(e.target.value as PdfTemplate)}
-            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="rounded-[2px] border border-line-ink bg-paper px-2 py-1.5 text-sm text-ink-soft focus:outline-none focus:ring-2 focus:ring-forest"
             aria-label="PDF template"
           >
             {(Object.keys(TEMPLATE_LABELS) as PdfTemplate[]).map((t) => (
@@ -93,14 +93,14 @@ export function ResumeResultPanel({ resume }: { resume: ResumeJSON }) {
           <button
             onClick={() => handleDownload("pdf")}
             disabled={downloadingFormat !== null}
-            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="cursor-pointer rounded-[2px] border border-forest bg-transparent px-3 py-1.5 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {downloadingFormat === "pdf" ? "Generating…" : "↓ PDF"}
           </button>
           <button
             onClick={() => handleDownload("docx")}
             disabled={downloadingFormat !== null}
-            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="cursor-pointer rounded-[2px] border border-forest bg-transparent px-3 py-1.5 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {downloadingFormat === "docx" ? "Generating…" : "↓ DOCX"}
           </button>
@@ -108,7 +108,7 @@ export function ResumeResultPanel({ resume }: { resume: ResumeJSON }) {
       </div>
 
       {error && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+        <div className="mb-3 rounded-[2px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}

@@ -65,18 +65,18 @@ export function ResumeTitleEditor({ id, title: initialTitle }: ResumeTitleEditor
             onChange={(e) => setDraft(e.target.value)}
             onBlur={save}
             onKeyDown={onKeyDown}
-            className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 bg-transparent border-b border-zinc-400 dark:border-zinc-500 outline-none w-full"
+            className="font-serif text-3xl font-medium tracking-tight text-ink bg-transparent border-b border-line-ink outline-none w-full"
             autoFocus
           />
         ) : (
           <>
-            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+            <h1 className="font-serif text-3xl font-medium tracking-tight text-ink">
               {title}
             </h1>
             <button
               onClick={startEditing}
               aria-label="Rename"
-              className="opacity-100 md:opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-opacity flex-shrink-0"
+              className="opacity-100 md:opacity-0 group-hover:opacity-100 text-muted hover:text-ink transition-opacity flex-shrink-0"
             >
               <PencilIcon />
             </button>

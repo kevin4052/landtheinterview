@@ -2,43 +2,48 @@
 
 import { useState } from "react";
 import { useProfileSection } from "./useProfileSection";
-import type { SkillCategoryEntry } from "./types";
+import type { PersonalProjectEntry } from "./types";
+import { BulletsInput } from "@/app/components/BulletsInput";
 
 type Props = {
-  initialCategories: SkillCategoryEntry[];
+  initialEntries: PersonalProjectEntry[];
 };
 
 type FormState = {
-  name: string;
-  skillsText: string;
+  title: string;
+  url: string;
+  bullets: string[];
 };
 
-const emptyForm: FormState = { name: "", skillsText: "" };
+const emptyForm: FormState = {
+  title: "",
+  url: "",
+  bullets: [],
+};
 
-function entryToForm(entry: SkillCategoryEntry): FormState {
+function entryToForm(entry: PersonalProjectEntry): FormState {
   return {
-    name: entry.name,
-    skillsText: entry.skills.join(", "),
+    title: entry.title,
+    url: entry.url ?? "",
+    bullets: entry.bullets,
   };
 }
 
 function formToPayload(form: FormState) {
   return {
-    name: form.name,
-    skills: form.skillsText
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
+    title: form.title,
+    url: form.url,
+    bullets: form.bullets.map((b) => b.trim()).filter(Boolean),
   };
 }
 
-type SkillFormProps = {
-  initialValues?: SkillCategoryEntry;
+type ProjectFormProps = {
+  initialValues?: PersonalProjectEntry;
   onSave: (payload: ReturnType<typeof formToPayload>) => Promise<boolean>;
   onCancel: () => void;
 };
 
-function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
+function ProjectForm({ initialValues, onSave, onCancel }: ProjectFormProps) {
   const [form, setForm] = useState<FormState>(
     initialValues ? entryToForm(initialValues) : emptyForm
   );
@@ -51,43 +56,45 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload = formToPayload(form);
-    if (payload.skills.length === 0) {
-      setError("Add at least one skill.");
-      return;
-    }
     setSaving(true);
     setError(null);
-    const ok = await onSave(payload);
+    const ok = await onSave(formToPayload(form));
     setSaving(false);
-    if (!ok) setError("Failed to save. Please try again.");
+    if (!ok) setError("Failed to save. Check the URL and try again.");
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-muted-strong">Category Name</label>
+        <label className="block text-xs font-medium text-muted-strong">Title</label>
         <input
           type="text"
-          value={form.name}
-          onChange={(e) => set("name", e.target.value)}
+          value={form.title}
+          onChange={(e) => set("title", e.target.value)}
           required
-          placeholder="Programming Languages"
+          placeholder="Open Source CLI Tool"
           className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-muted-strong">
-          Skills (comma-separated)
-        </label>
+        <label className="block text-xs font-medium text-muted-strong">URL (optional)</label>
         <input
           type="text"
-          value={form.skillsText}
-          onChange={(e) => set("skillsText", e.target.value)}
-          required
-          placeholder="TypeScript, Python, Go"
+          value={form.url}
+          onChange={(e) => set("url", e.target.value)}
+          placeholder="github.com/you/project"
           className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-muted-strong">Bullets</label>
+        <BulletsInput
+          bullets={form.bullets}
+          onChange={(bullets) => set("bullets", bullets)}
+          placeholder="Built a CLI that automates release notes from commit history"
+          textareaClassName="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
@@ -114,12 +121,12 @@ function SkillForm({ initialValues, onSave, onCancel }: SkillFormProps) {
 }
 
 type ItemProps = {
-  category: SkillCategoryEntry;
+  entry: PersonalProjectEntry;
   onEdit: () => void;
   onDelete: () => Promise<boolean>;
 };
 
-function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
+function ProjectItem({ entry, onEdit, onDelete }: ItemProps) {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
 
@@ -135,17 +142,27 @@ function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
     <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground mb-2">{category.name}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {category.skills.map((skill) => (
-              <span
-                key={skill}
-                className="inline-flex items-center border-b border-moss pb-px font-serif text-[13px] italic text-forest"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
+          <p className="text-sm font-semibold text-foreground">{entry.title}</p>
+          {entry.url && (
+            <a
+              href={entry.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:text-primary-hover transition-colors break-all"
+            >
+              {entry.url}
+            </a>
+          )}
+          {entry.bullets.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {entry.bullets.map((b, i) => (
+                <li key={i} className="flex gap-2 text-xs text-muted-strong">
+                  <span className="mt-0.5 shrink-0 text-muted-soft">•</span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <div className="flex gap-3">
@@ -172,50 +189,50 @@ function SkillCategoryItem({ category, onEdit, onDelete }: ItemProps) {
   );
 }
 
-export function SkillsSection({ initialCategories }: Props) {
-  const section = useProfileSection<ReturnType<typeof formToPayload>>("skill-categories");
+export function PersonalProjectsSection({ initialEntries }: Props) {
+  const section = useProfileSection<ReturnType<typeof formToPayload>>("personal-projects");
 
   return (
     <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
+        <h2 className="font-serif text-xl font-medium text-ink">Personal Projects</h2>
         {!section.isAdding && (
           <button
             onClick={section.startAdd}
             className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
           >
-            + Add Category
+            + Add
           </button>
         )}
       </div>
 
       <div className="space-y-4">
         {section.isAdding && (
-          <SkillForm
+          <ProjectForm
             onSave={section.create}
             onCancel={section.cancel}
           />
         )}
 
-        {initialCategories.length === 0 && !section.isAdding && (
-          <p className="text-sm text-muted">No skill categories added yet.</p>
+        {initialEntries.length === 0 && !section.isAdding && (
+          <p className="text-sm text-muted">No personal projects added yet.</p>
         )}
 
-        {initialCategories.map((category) =>
-          section.editingId === category.id ? (
-            <div key={category.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
-              <SkillForm
-                initialValues={category}
-                onSave={(payload) => section.update(category.id, payload)}
+        {initialEntries.map((entry) =>
+          section.editingId === entry.id ? (
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
+              <ProjectForm
+                initialValues={entry}
+                onSave={(payload) => section.update(entry.id, payload)}
                 onCancel={section.cancel}
               />
             </div>
           ) : (
-            <SkillCategoryItem
-              key={category.id}
-              category={category}
-              onEdit={() => section.startEdit(category.id)}
-              onDelete={() => section.remove(category.id)}
+            <ProjectItem
+              key={entry.id}
+              entry={entry}
+              onEdit={() => section.startEdit(entry.id)}
+              onDelete={() => section.remove(entry.id)}
             />
           )
         )}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useProfileSection } from "./useProfileSection";
 import type { WorkExperienceEntry } from "./types";
 import { toMonthInput, formatMonth } from "./dateUtils";
+import { BulletsInput } from "@/app/components/BulletsInput";
 
 type Props = {
   initialEntries: WorkExperienceEntry[];
@@ -16,7 +17,7 @@ type FormState = {
   startDate: string;
   endDate: string;
   isCurrent: boolean;
-  bulletsText: string;
+  bullets: string[];
 };
 
 const emptyForm: FormState = {
@@ -26,7 +27,7 @@ const emptyForm: FormState = {
   startDate: "",
   endDate: "",
   isCurrent: false,
-  bulletsText: "",
+  bullets: [],
 };
 
 function entryToForm(entry: WorkExperienceEntry): FormState {
@@ -37,7 +38,7 @@ function entryToForm(entry: WorkExperienceEntry): FormState {
     startDate: toMonthInput(entry.startDate),
     endDate: toMonthInput(entry.endDate),
     isCurrent: entry.isCurrent,
-    bulletsText: entry.bullets.join("\n"),
+    bullets: entry.bullets,
   };
 }
 
@@ -49,10 +50,7 @@ function formToPayload(form: FormState) {
     startDate: form.startDate,
     endDate: form.isCurrent ? undefined : form.endDate || undefined,
     isCurrent: form.isCurrent,
-    bullets: form.bulletsText
-      .split("\n")
-      .map((b) => b.trim())
-      .filter(Boolean),
+    bullets: form.bullets.map((b) => b.trim()).filter(Boolean),
   };
 }
 
@@ -83,86 +81,83 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-[2px] border border-forest/25 bg-forest/5 p-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Company</label>
+          <label className="block text-xs font-medium text-muted-strong">Company</label>
           <input
             type="text"
             value={form.company}
             onChange={(e) => set("company", e.target.value)}
             required
             placeholder="Acme Corp"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Job Title</label>
+          <label className="block text-xs font-medium text-muted-strong">Job Title</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
             required
             placeholder="Software Engineer"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">Location (optional)</label>
+        <label className="block text-xs font-medium text-muted-strong">Location (optional)</label>
         <input
           type="text"
           value={form.location}
           onChange={(e) => set("location", e.target.value)}
           placeholder="San Francisco, CA"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">Start Date</label>
+          <label className="block text-xs font-medium text-muted-strong">Start Date</label>
           <input
             type="month"
             value={form.startDate}
             onChange={(e) => set("startDate", e.target.value)}
             required
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-neutral-600">End Date</label>
+          <label className="block text-xs font-medium text-muted-strong">End Date</label>
           <input
             type="month"
             value={form.endDate}
             onChange={(e) => set("endDate", e.target.value)}
             disabled={form.isCurrent}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-neutral-100 disabled:text-neutral-400"
+            className="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-paper-2 disabled:text-muted-soft"
           />
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-sm text-ink-soft">
         <input
           type="checkbox"
           checked={form.isCurrent}
           onChange={(e) => set("isCurrent", e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 text-primary"
+          className="h-4 w-4 rounded border-line-ink text-primary"
         />
         Currently working here
       </label>
 
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-neutral-600">
-          Bullets (one per line)
-        </label>
-        <textarea
-          value={form.bulletsText}
-          onChange={(e) => set("bulletsText", e.target.value)}
-          rows={4}
-          placeholder="Built a distributed caching layer that reduced API latency by 40%&#10;Led a team of 4 engineers..."
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+        <label className="block text-xs font-medium text-muted-strong">Bullets</label>
+        <BulletsInput
+          bullets={form.bullets}
+          onChange={(bullets) => set("bullets", bullets)}
+          placeholder="Built a distributed caching layer that reduced API latency by 40%"
+          textareaClassName="w-full rounded-[2px] border border-line-ink bg-paper px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
@@ -172,14 +167,14 @@ function WorkExpForm({ initialValues, onSave, onCancel }: WorkExpFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-60"
+          className="rounded-[2px] border border-forest bg-forest px-4 py-2 text-sm font-semibold text-paper transition-colors hover:border-ink hover:bg-ink disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:text-foreground transition-colors"
+          className="rounded-[2px] px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
         >
           Cancel
         </button>
@@ -211,20 +206,20 @@ function WorkExpItem({ entry, onEdit, onDelete }: ItemProps) {
   }`;
 
   return (
-    <div className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+    <div className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{entry.title}</p>
-          <p className="text-sm text-neutral-600">{entry.company}</p>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <p className="text-sm text-muted-strong">{entry.company}</p>
+          <p className="mt-0.5 text-xs text-muted">
             {dateRange}
             {entry.location ? ` · ${entry.location}` : ""}
           </p>
           {entry.bullets.length > 0 && (
             <ul className="mt-2 space-y-1">
               {entry.bullets.map((b, i) => (
-                <li key={i} className="flex gap-2 text-xs text-neutral-600">
-                  <span className="mt-0.5 shrink-0 text-neutral-400">•</span>
+                <li key={i} className="flex gap-2 text-xs text-muted-strong">
+                  <span className="mt-0.5 shrink-0 text-muted-soft">•</span>
                   <span>{b}</span>
                 </li>
               ))}
@@ -257,59 +252,15 @@ function WorkExpItem({ entry, onEdit, onDelete }: ItemProps) {
 }
 
 export function WorkExperienceSection({ initialEntries }: Props) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-
-  function refresh() {
-    startTransition(() => router.refresh());
-  }
-
-  async function handleAdd(payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch("/api/profile/work-experience", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setIsAdding(false);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleUpdate(id: string, payload: ReturnType<typeof formToPayload>) {
-    const res = await fetch(`/api/profile/work-experience/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      setEditingId(null);
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  async function handleDelete(id: string): Promise<boolean> {
-    const res = await fetch(`/api/profile/work-experience/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      refresh();
-      return true;
-    }
-    return false;
-  }
+  const section = useProfileSection<ReturnType<typeof formToPayload>>("work-experience");
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
+    <section className="rounded-[2px] border border-line-ink bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Work Experience</h2>
-        {!isAdding && (
+        <h2 className="font-serif text-xl font-medium text-ink">Work Experience</h2>
+        {!section.isAdding && (
           <button
-            onClick={() => { setIsAdding(true); setEditingId(null); }}
+            onClick={section.startAdd}
             className="text-sm text-primary hover:text-primary-hover font-medium transition-colors"
           >
             + Add
@@ -318,32 +269,32 @@ export function WorkExperienceSection({ initialEntries }: Props) {
       </div>
 
       <div className="space-y-4">
-        {isAdding && (
+        {section.isAdding && (
           <WorkExpForm
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
+            onSave={section.create}
+            onCancel={section.cancel}
           />
         )}
 
-        {initialEntries.length === 0 && !isAdding && (
-          <p className="text-sm text-neutral-500">No work experience added yet.</p>
+        {initialEntries.length === 0 && !section.isAdding && (
+          <p className="text-sm text-muted">No work experience added yet.</p>
         )}
 
         {initialEntries.map((entry) =>
-          editingId === entry.id ? (
-            <div key={entry.id} className="border-t border-neutral-100 pt-4 first:border-t-0 first:pt-0">
+          section.editingId === entry.id ? (
+            <div key={entry.id} className="border-t border-paper-2 pt-4 first:border-t-0 first:pt-0">
               <WorkExpForm
                 initialValues={entry}
-                onSave={(payload) => handleUpdate(entry.id, payload)}
-                onCancel={() => setEditingId(null)}
+                onSave={(payload) => section.update(entry.id, payload)}
+                onCancel={section.cancel}
               />
             </div>
           ) : (
             <WorkExpItem
               key={entry.id}
               entry={entry}
-              onEdit={() => { setEditingId(entry.id); setIsAdding(false); }}
-              onDelete={() => handleDelete(entry.id)}
+              onEdit={() => section.startEdit(entry.id)}
+              onDelete={() => section.remove(entry.id)}
             />
           )
         )}

@@ -15,6 +15,27 @@
       "when": 1780349264550,
       "tag": "0001_conscious_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781308864487,
+      "tag": "0002_lethal_warstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781310325135,
+      "tag": "0003_mute_johnny_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781310921752,
+      "tag": "0004_lowly_the_fallen",
+      "breakpoints": true
     }
   ]
 }

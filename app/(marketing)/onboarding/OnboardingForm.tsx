@@ -2,6 +2,7 @@
 
 import { Fragment, KeyboardEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BulletsInput } from "@/app/components/BulletsInput";
 
 type WorkExp = {
   company: string;
@@ -10,7 +11,18 @@ type WorkExp = {
   endDate: string;
   isCurrent: boolean;
   location: string;
-  bullets: string;
+  bullets: string[];
+};
+
+type Project = {
+  title: string;
+  url: string;
+  bullets: string[];
+};
+
+type ContactLink = {
+  label: string;
+  url: string;
 };
 
 type SkillCat = {
@@ -28,7 +40,11 @@ type Edu = {
 };
 
 function emptyWorkExp(): WorkExp {
-  return { company: "", title: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: "" };
+  return { company: "", title: "", startDate: "", endDate: "", isCurrent: false, location: "", bullets: [] };
+}
+
+function emptyProject(): Project {
+  return { title: "", url: "", bullets: [] };
 }
 
 function emptySkillCat(): SkillCat {
@@ -39,15 +55,17 @@ function emptyEdu(): Edu {
   return { school: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", isCurrent: false };
 }
 
-const STEP_LABELS = ["Personal Info", "Work Experience", "Skills", "Education"];
+const STEP_LABELS = ["Personal Info", "Work Experience", "Projects", "Skills", "Education"];
+
+const LABEL_SUGGESTIONS = ["LinkedIn", "GitHub", "X", "Portfolio", "Website"];
 
 const inputCls =
-  "w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
+  "w-full border border-line-ink bg-paper rounded-[2px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 focus:border-forest transition-colors";
 const labelCls = "block text-sm font-medium text-foreground mb-1";
 const primaryBtn =
-  "bg-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  "border border-forest bg-forest text-paper rounded-[2px] px-4 py-2 text-sm font-semibold hover:bg-ink hover:border-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 const ghostBtn =
-  "border border-neutral-300 text-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition-colors";
+  "border border-line-ink text-ink-soft rounded-[2px] px-4 py-2 text-sm font-medium hover:border-forest hover:text-forest transition-colors";
 
 export function OnboardingForm({
   initialName,
@@ -63,9 +81,15 @@ export function OnboardingForm({
 
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [contactLinks, setContactLinks] = useState<ContactLink[]>([]);
 
   const [workExps, setWorkExps] = useState<WorkExp[]>([]);
   const [wDraft, setWDraft] = useState<WorkExp>(emptyWorkExp());
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [pDraft, setPDraft] = useState<Project>(emptyProject());
 
   const [skillCats, setSkillCats] = useState<SkillCat[]>([]);
   const [sDraft, setSDraft] = useState<SkillCat>(emptySkillCat());
@@ -75,6 +99,7 @@ export function OnboardingForm({
   const [eDraft, setEDraft] = useState<Edu>(emptyEdu());
 
   const canAddWork = wDraft.company.trim() && wDraft.title.trim() && wDraft.startDate;
+  const canAddProject = pDraft.title.trim();
   const canAddCat = sDraft.categoryName.trim() && sDraft.skills.length > 0;
   const canAddEdu = eDraft.school.trim() && eDraft.degree.trim() && eDraft.fieldOfStudy.trim() && eDraft.startDate;
 
@@ -82,6 +107,22 @@ export function OnboardingForm({
     if (!canAddWork) return;
     setWorkExps((p) => [...p, wDraft]);
     setWDraft(emptyWorkExp());
+  };
+
+  const addProject = () => {
+    if (!canAddProject) return;
+    setProjects((p) => [...p, pDraft]);
+    setPDraft(emptyProject());
+  };
+
+  const updateLink = (index: number, patch: Partial<ContactLink>) => {
+    setContactLinks((links) =>
+      links.map((link, i) => (i === index ? { ...link, ...patch } : link))
+    );
+  };
+
+  const removeLink = (index: number) => {
+    setContactLinks((links) => links.filter((_, i) => i !== index));
   };
 
   const addSkillToCategory = (raw: string) => {
@@ -121,6 +162,15 @@ export function OnboardingForm({
         body: JSON.stringify({
           name,
           email,
+          phone: phone.trim() || undefined,
+          location: location.trim() || undefined,
+          // Rows missing a label or URL are abandoned drafts, not data.
+          contactLinks: contactLinks.filter((l) => l.label.trim() && l.url.trim()),
+          personalProjects: projects.map((p) => ({
+            title: p.title,
+            url: p.url.trim() || undefined,
+            bullets: p.bullets.map((b) => b.trim()).filter(Boolean),
+          })),
           workExperience: workExps.map((e) => ({
             company: e.company,
             title: e.title,
@@ -128,10 +178,7 @@ export function OnboardingForm({
             endDate: e.isCurrent ? undefined : e.endDate || undefined,
             isCurrent: e.isCurrent,
             location: e.location || undefined,
-            bullets: e.bullets
-              .split("\n")
-              .map((b) => b.trim())
-              .filter(Boolean),
+            bullets: e.bullets.map((b) => b.trim()).filter(Boolean),
           })),
           skillCategories: skillCats.map((c) => ({
             categoryName: c.categoryName,
@@ -170,19 +217,19 @@ export function OnboardingForm({
             <Fragment key={num}>
               <div className="flex flex-col items-center gap-1 shrink-0">
                 <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                  className={`h-8 w-8 rounded-full flex items-center justify-center font-serif text-sm font-semibold transition-colors ${
                     done
-                      ? "bg-primary text-white"
+                      ? "bg-forest text-paper"
                       : active
-                      ? "border-2 border-primary text-primary bg-white"
-                      : "border-2 border-neutral-300 text-neutral-400 bg-white"
+                      ? "border-[1.5px] border-forest text-forest bg-paper italic"
+                      : "border-[1.5px] border-line-ink text-muted bg-paper"
                   }`}
                 >
                   {done ? "✓" : num}
                 </div>
                 <span
                   className={`text-xs text-center w-16 ${
-                    active ? "text-primary font-medium" : "text-neutral-400"
+                    active ? "text-forest font-medium" : "text-muted"
                   }`}
                 >
                   {label}
@@ -191,7 +238,7 @@ export function OnboardingForm({
               {i < STEP_LABELS.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mt-4 mx-1 transition-colors ${
-                    done ? "bg-primary" : "bg-neutral-200"
+                    done ? "bg-forest" : "bg-line"
                   }`}
                 />
               )}
@@ -201,11 +248,11 @@ export function OnboardingForm({
       </div>
 
       {/* Card */}
-      <div className="bg-white border border-neutral-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-card border border-line-ink rounded-[2px] p-6">
         {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Your info</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">Your info</h2>
             <div>
               <label className={labelCls}>Full name</label>
               <input
@@ -225,33 +272,99 @@ export function OnboardingForm({
                 placeholder="jane@example.com"
               />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Phone (optional)</label>
+                <input
+                  type="tel"
+                  className={inputCls}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="555-123-4567"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Location (optional)</label>
+                <input
+                  className={inputCls}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Austin, TX"
+                />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Links (optional)</label>
+              <datalist id="onboarding-link-label-suggestions">
+                {LABEL_SUGGESTIONS.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              <div className="space-y-2">
+                {contactLinks.map((link, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => updateLink(i, { label: e.target.value })}
+                      list="onboarding-link-label-suggestions"
+                      placeholder="Label"
+                      maxLength={40}
+                      className="w-28 shrink-0 border border-line-ink bg-paper rounded-[2px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 focus:border-forest transition-colors"
+                    />
+                    <input
+                      type="text"
+                      value={link.url}
+                      onChange={(e) => updateLink(i, { url: e.target.value })}
+                      placeholder="linkedin.com/in/you"
+                      className={inputCls}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeLink(i)}
+                      aria-label="Remove link"
+                      className="shrink-0 px-2 text-sm text-ink-soft hover:text-red-600 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setContactLinks((links) => [...links, { label: "", url: "" }])}
+                className="mt-2 text-sm text-primary hover:text-primary-hover font-medium transition-colors"
+              >
+                + Add link
+              </button>
+            </div>
           </div>
         )}
 
         {/* Step 2 */}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Work experience</h2>
-            <p className="text-sm text-neutral-500">Add at least one position.</p>
+            <h2 className="font-serif text-xl font-medium text-ink">Work experience</h2>
+            <p className="text-sm text-muted">Add at least one position.</p>
 
             {workExps.length > 0 && (
               <ul className="space-y-2">
                 {workExps.map((e, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
                         {e.title} · {e.company}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-muted">
                         {e.startDate} — {e.isCurrent ? "Present" : e.endDate || "—"}
                       </p>
                     </div>
                     <button
                       onClick={() => setWorkExps((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -260,7 +373,7 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Company</label>
@@ -302,7 +415,7 @@ export function OnboardingForm({
                   />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
                 <input
                   type="checkbox"
                   checked={wDraft.isCurrent}
@@ -323,19 +436,18 @@ export function OnboardingForm({
                 />
               </div>
               <div>
-                <label className={labelCls}>Bullet points (one per line, optional)</label>
-                <textarea
-                  className={`${inputCls} resize-none`}
-                  rows={3}
-                  value={wDraft.bullets}
-                  onChange={(e) => setWDraft((p) => ({ ...p, bullets: e.target.value }))}
+                <label className={labelCls}>Bullet points (optional)</label>
+                <BulletsInput
+                  bullets={wDraft.bullets}
+                  onChange={(bullets) => setWDraft((p) => ({ ...p, bullets }))}
                   placeholder="Shipped new checkout flow that increased conversions by 12%"
+                  textareaClassName={inputCls}
                 />
               </div>
               <button
                 onClick={addWorkExp}
                 disabled={!canAddWork}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add entry
               </button>
@@ -346,25 +458,25 @@ export function OnboardingForm({
         {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Skills</h2>
-            <p className="text-sm text-neutral-500">
-              Group your skills by category (e.g. Languages, Frameworks, Tools).
+            <h2 className="font-serif text-xl font-medium text-ink">Personal projects</h2>
+            <p className="text-sm text-muted">
+              Add self-directed projects you want on your resume. You can skip this step.
             </p>
 
-            {skillCats.length > 0 && (
+            {projects.length > 0 && (
               <ul className="space-y-2">
-                {skillCats.map((c, i) => (
+                {projects.map((p, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{c.categoryName}</p>
-                      <p className="text-xs text-neutral-500">{c.skills.join(", ")}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{p.title}</p>
+                      {p.url && <p className="text-xs text-muted truncate">{p.url}</p>}
                     </div>
                     <button
-                      onClick={() => setSkillCats((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      onClick={() => setProjects((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -373,7 +485,76 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
+              <div>
+                <label className={labelCls}>Title</label>
+                <input
+                  className={inputCls}
+                  value={pDraft.title}
+                  onChange={(e) => setPDraft((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Open Source CLI Tool"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>URL (optional)</label>
+                <input
+                  className={inputCls}
+                  value={pDraft.url}
+                  onChange={(e) => setPDraft((p) => ({ ...p, url: e.target.value }))}
+                  placeholder="github.com/you/project"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Bullet points (optional)</label>
+                <BulletsInput
+                  bullets={pDraft.bullets}
+                  onChange={(bullets) => setPDraft((p) => ({ ...p, bullets }))}
+                  placeholder="Built a CLI that automates release notes from commit history"
+                  textareaClassName={inputCls}
+                />
+              </div>
+              <button
+                onClick={addProject}
+                disabled={!canAddProject}
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                + Add entry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4 */}
+        {step === 4 && (
+          <div className="space-y-4">
+            <h2 className="font-serif text-xl font-medium text-ink">Skills</h2>
+            <p className="text-sm text-muted">
+              Group your skills by category (e.g. Languages, Frameworks, Tools).
+            </p>
+
+            {skillCats.length > 0 && (
+              <ul className="space-y-2">
+                {skillCats.map((c, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{c.categoryName}</p>
+                      <p className="text-xs text-muted">{c.skills.join(", ")}</p>
+                    </div>
+                    <button
+                      onClick={() => setSkillCats((p) => p.filter((_, idx) => idx !== i))}
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div>
                 <label className={labelCls}>Category name</label>
                 <input
@@ -414,12 +595,12 @@ export function OnboardingForm({
                   onBlur={() => addSkillToCategory(skillInput)}
                   placeholder="Type a skill and press Enter"
                 />
-                <p className="text-xs text-neutral-400 mt-1">Press Enter or comma to add a skill</p>
+                <p className="text-xs text-muted-soft mt-1">Press Enter or comma to add a skill</p>
               </div>
               <button
                 onClick={addSkillCat}
                 disabled={!canAddCat}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add category
               </button>
@@ -427,28 +608,28 @@ export function OnboardingForm({
           </div>
         )}
 
-        {/* Step 4 */}
-        {step === 4 && (
+        {/* Step 5 */}
+        {step === 5 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Education</h2>
-            <p className="text-sm text-neutral-500">Add your educational background.</p>
+            <h2 className="font-serif text-xl font-medium text-ink">Education</h2>
+            <p className="text-sm text-muted">Add your educational background.</p>
 
             {educations.length > 0 && (
               <ul className="space-y-2">
                 {educations.map((e, i) => (
                   <li
                     key={i}
-                    className="flex items-start justify-between gap-3 border border-neutral-200 rounded-lg px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-line-ink bg-paper rounded-[2px] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
                         {e.degree} in {e.fieldOfStudy}
                       </p>
-                      <p className="text-xs text-neutral-500">{e.school}</p>
+                      <p className="text-xs text-muted">{e.school}</p>
                     </div>
                     <button
                       onClick={() => setEducations((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-neutral-400 hover:text-red-500 text-xs shrink-0"
+                      className="text-muted-soft hover:text-red-500 text-xs shrink-0"
                     >
                       Remove
                     </button>
@@ -457,7 +638,7 @@ export function OnboardingForm({
               </ul>
             )}
 
-            <div className="border border-dashed border-neutral-300 rounded-lg p-4 space-y-3">
+            <div className="border border-dashed border-line-ink rounded-[2px] p-4 space-y-3">
               <div>
                 <label className={labelCls}>School</label>
                 <input
@@ -508,7 +689,7 @@ export function OnboardingForm({
                   />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
                 <input
                   type="checkbox"
                   checked={eDraft.isCurrent}
@@ -522,7 +703,7 @@ export function OnboardingForm({
               <button
                 onClick={addEdu}
                 disabled={!canAddEdu}
-                className="w-full border border-primary text-primary rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full border border-forest text-forest rounded-[2px] px-4 py-2 text-sm font-medium hover:bg-forest hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 + Add entry
               </button>
@@ -533,7 +714,7 @@ export function OnboardingForm({
         {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-100">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-paper-2">
           {step > 1 ? (
             <button onClick={() => setStep((s) => s - 1)} className={ghostBtn}>
               Back
@@ -543,17 +724,17 @@ export function OnboardingForm({
           )}
 
           <div className="flex items-center gap-2">
-            {step === 3 && (
-              <button onClick={() => setStep(4)} className={ghostBtn}>
+            {(step === 3 || step === 4) && (
+              <button onClick={() => setStep(step + 1)} className={ghostBtn}>
                 Skip for now
               </button>
             )}
-            {step === 4 && (
+            {step === 5 && (
               <button onClick={submit} disabled={submitting} className={ghostBtn}>
                 {submitting ? "Saving…" : "Skip for now"}
               </button>
             )}
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 onClick={() => setStep((s) => s + 1)}
                 disabled={

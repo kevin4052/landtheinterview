@@ -1,0 +1,1 @@
+ALTER TABLE "user_profiles" ADD COLUMN "contact_links" jsonb DEFAULT '[]'::jsonb NOT NULL;

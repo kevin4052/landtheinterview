@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   boolean,
+  jsonb,
   type AnyPgColumn,
   pgRole,
 } from "drizzle-orm/pg-core";
@@ -13,6 +14,10 @@ import { crudPolicy, authUid } from "drizzle-orm/neon";
 import { relations, sql } from "drizzle-orm";
 
 export const planEnum = pgEnum("plan", ["free", "mid", "pro"]);
+
+// Ordered label-and-URL pair on a User Profile (a profile field, not a
+// Profile Section — saves with Personal Info, no per-row lifecycle).
+export type ContactLink = { label: string; url: string };
 
 // The serverless driver connects DIRECTLY AS `authenticated_backend` — a
 // passwordless LOGIN role whose credential is the JWKS-validated Clerk JWT.
@@ -51,6 +56,12 @@ export const userProfiles = pgTable("user_profiles", {
     .references(() => tenants.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  phone: text("phone"),
+  location: text("location"),
+  contactLinks: jsonb("contact_links")
+    .$type<ContactLink[]>()
+    .notNull()
+    .default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -128,6 +139,29 @@ export const skillCategories = pgTable("skill_categories", {
   }),
 ]);
 
+export const personalProjects = pgTable("personal_projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => userProfiles.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  url: text("url"),
+  bullets: text("bullets").array().notNull().default([]),
+  // Personal Projects carry no dates; created_at is the creation-order key.
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => [
+  crudPolicy({
+    role: rlsRoles,
+    read: belongsToTenant(t.tenantId),
+    modify: belongsToTenant(t.tenantId),
+  }),
+]);
+
 export const tailoredResumes = pgTable("tailored_resumes", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id")
@@ -168,6 +202,17 @@ export const userProfilesRelations = relations(
     workExperience: many(workExperience),
     education: many(education),
     skillCategories: many(skillCategories),
+    personalProjects: many(personalProjects),
+  })
+);
+
+export const personalProjectsRelations = relations(
+  personalProjects,
+  ({ one }) => ({
+    profile: one(userProfiles, {
+      fields: [personalProjects.profileId],
+      references: [userProfiles.id],
+    }),
   })
 );
 

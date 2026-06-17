@@ -3,8 +3,14 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import { getDb } from "@/lib/db/client";
-import { workExperience, education, skillCategories } from "@/lib/db/schema";
+import {
+  workExperience,
+  education,
+  skillCategories,
+  personalProjects,
+} from "@/lib/db/schema";
 import { parseMonthDate } from "@/lib/utils/date";
+import { projectUrlSchema } from "@/lib/validators/contactLink.schema";
 
 // Insert subqueries resolve the caller's Tenant and Profile from the JWT.
 // RLS independently rejects any row that doesn't belong to the caller, so
@@ -119,6 +125,20 @@ const SECTIONS = {
       startDate: z.string().min(1).transform(parseMonthDate).optional(),
       endDate: z.string().nullable().transform((s) => (s ? parseMonthDate(s) : null)).optional(),
       isCurrent: z.boolean().optional(),
+    })
+  ),
+
+  "personal-projects": defineSection(
+    personalProjects,
+    z.object({
+      title: z.string().min(1),
+      url: projectUrlSchema.optional(),
+      bullets: z.array(z.string().min(1)),
+    }),
+    z.object({
+      title: z.string().min(1).optional(),
+      url: projectUrlSchema.nullable().optional(),
+      bullets: z.array(z.string().min(1)).optional(),
     })
   ),
 
